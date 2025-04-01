@@ -181,41 +181,102 @@
       });
     }
   </script>
-  
+
+<!-- JavaScript -->
   <script>
-    // Update the dashboard with the stored company name from localStorage
-    document.addEventListener("DOMContentLoaded", function () {
-      const companyName = localStorage.getItem("donorcompanyname");
-      const nameElement = document.getElementById("company-name");
-      if (nameElement) {
-        nameElement.innerText = companyName ? companyName : "Unknown Donor";
-      }
-    });
-  </script>
-  
-  <script>
-    // Verification: When "Verify Now" is clicked, call the verification route.
-    document.getElementById("verifyNow").addEventListener("click", async function () {
+    document.addEventListener("DOMContentLoaded", async function () {
+      const companyNameEl = document.getElementById("company-name");
       const verifyBtn = document.getElementById("verifyNow");
-      try {
-        document.getElementById("verificationStatus").innerText = "Starting verification...";
-        const response = await fetch("http://localhost:3000/api/donor/start-fssai-verification", { 
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
-        const data = await response.json();
-        if (data.valid) {
-          document.getElementById("verificationStatus").innerText = "✅ FSSAI License is VALID!";
-          verifyBtn.innerText = "Verified";
-          verifyBtn.disabled = true;
-          verifyBtn.classList.add("bg-gray-500");
-        } else {
-          document.getElementById("verificationStatus").innerText = "❌ No records found. Invalid FSSAI number.";
+      const verificationStatus = document.getElementById("verificationStatus");
+
+      // ✅ Fetch company name from session and update dashboard
+      async function fetchCompanyName() {
+        try {
+          const response = await fetch("http://localhost:3000/api/donor/details", {
+            method: "GET",
+            credentials: "include"
+          });
+          const data = await response.json();
+
+          if (response.ok) {
+            localStorage.setItem("donorcompanyname", data.companyname); // Ensure storage updates
+            companyNameEl.textContent = data.companyname || "Unknown Donor";
+          } else {
+            console.error("Failed to fetch donor details:", data.message);
+            companyNameEl.textContent = "Unknown Donor";
+          }
+        } catch (error) {
+          console.error("Error fetching donor details:", error);
+          companyNameEl.textContent = "Unknown Donor";
         }
-      } catch (error) {
-        console.error("Error:", error);
-        document.getElementById("verificationStatus").innerText = "⚠ Failed to start verification.";
       }
+
+      // ✅ Fetch verification status and update button accordingly
+      async function fetchVerificationStatus() {
+        try {
+          const response = await fetch("http://localhost:3000/api/donor/status");
+          const data = await response.json();
+
+          if (!verificationStatus || !verifyBtn) {
+            console.error("Verification elements not found.");
+            return;
+          }
+
+          if (data.verified) {
+            verificationStatus.innerText = "✅ FSSAI License is VALID!";
+            verifyBtn.innerText = "Verified ✅";
+            verifyBtn.disabled = true;
+            verifyBtn.classList.add("bg-[#74A57F]");
+          }
+        } catch (error) {
+          console.error("Error fetching verification status:", error);
+        }
+      }
+
+      // ✅ Handle "Verify Now" button click
+      if (verifyBtn) {
+        verifyBtn.addEventListener("click", async function () {
+          console.log("Verify button clicked!");
+
+          try {
+            verificationStatus.innerText = "Starting verification...";
+            
+            const response = await fetch("http://localhost:3000/api/donor/start-fssai-verification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include"
+            });
+
+            const data = await response.json();
+
+            if (data.valid) {
+              verificationStatus.innerText = "✅ FSSAI License is VALID!";
+              verifyBtn.innerText = "Verified ✅";
+              verifyBtn.disabled = true;
+              verifyBtn.classList.add("bg-[#74A57F]");
+            } else {
+              verificationStatus.innerText = "❌ No records found. Invalid FSSAI number.";
+            }
+          } catch (error) {
+            console.error("Verification Error:", error);
+            verificationStatus.innerText = "⚠ Failed to start verification.";
+          }
+        });
+      }
+
+      // ✅ Logout Button Functionality
+      document.getElementById("logout-btn").addEventListener("click", function () {
+        if (confirm("Are you sure you want to log out?")) {
+          localStorage.removeItem("donorcompanyname"); // Clear stored data
+          fetch("/api/donor/logout").then(() => {
+            window.location.href = "/donor_login.html";
+          });
+        }
+      });
+
+      // ✅ Call functions to update the dashboard on load
+      await fetchCompanyName();
+      await fetchVerificationStatus();
     });
   </script>
 </body>

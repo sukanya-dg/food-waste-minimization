@@ -114,7 +114,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.getElementById("startVerification")?.addEventListener("click", async () => {
     try {
-        const response = await fetch("http://localhost:3000/api/donor/start-fssai-verification");
+        const response = await fetch("http://localhost:3000/api/donor/start-fssai-verification", {
+            method: "POST"
+        });
         const data = await response.json();
 
         if (response.ok) {
@@ -127,3 +129,4 @@ document.getElementById("startVerification")?.addEventListener("click", async ()
         document.getElementById("verificationStatus").innerText = "Failed to open FSSAI website.";
     }
 });
+

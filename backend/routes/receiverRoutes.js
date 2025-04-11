@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const db = require("../db"); // ✅ Import MySQL connection
-const { verifyNgo } = require("./ngoVerification"); // ✅ Adjust path if needed
+const { verifyNgo } = require("./ngoVerification"); // ✅ Keep as-is
+const Receiver = require("../models/Receiver"); // ✅ MongoDB Mongoose model
 
 const router = express.Router();
 
@@ -15,36 +15,27 @@ router.post("/signup", async (req, res) => {
     }
 
     try {
-        // Check if email is already registered
-        db.query("SELECT * FROM receiver WHERE email = ?", [email], async (err, results) => {
-            if (err) {
-                console.error("MySQL Query Error:", err);
-                return res.status(500).json({ success: false, message: "Database error." });
-            }
+        const existingReceiver = await Receiver.findOne({ email });
+        if (existingReceiver) {
+            return res.status(400).json({ success: false, message: "Email is already in use." });
+        }
 
-            if (results.length > 0) {
-                return res.status(400).json({ success: false, message: "Email is already in use." });
-            }
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-            // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10);
+        const newReceiver = new Receiver({
+            nponame,
+            regno,
+            email,
+            password: hashedPassword,
+            verified: false
+        });
 
-            // Insert new receiver into MySQL
-            db.query("INSERT INTO receiver (nponame, regno, email, password, verified) VALUES (?, ?, ?, ?, ?)", 
-                [nponame, regno, email, hashedPassword, false], 
-                (err, result) => {
-                    if (err) {
-                        console.error("MySQL Insert Error:", err);
-                        return res.status(500).json({ success: false, message: "Database error." });
-                    }
+        await newReceiver.save();
 
-                    res.status(201).json({ 
-                        success: true, 
-                        nponame, 
-                        redirect: "/receiver_dashboard.html" 
-                    });
-                }
-            );
+        res.status(201).json({
+            success: true,
+            nponame,
+            redirect: "/receiver_dashboard.html"
         });
     } catch (error) {
         console.error("❌ Signup Error:", error);
@@ -62,30 +53,20 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        // Fetch receiver from MySQL
-        db.query("SELECT * FROM receiver WHERE email = ?", [email], async (err, results) => {
-            if (err) {
-                console.error("MySQL Query Error:", err);
-                return res.status(500).json({ success: false, message: "Database error." });
-            }
+        const receiver = await Receiver.findOne({ email });
+        if (!receiver) {
+            return res.status(400).json({ success: false, message: "Invalid email or password." });
+        }
 
-            if (results.length === 0) {
-                return res.status(400).json({ success: false, message: "Invalid email or password." });
-            }
+        const isMatch = await bcrypt.compare(password, receiver.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Invalid email or password." });
+        }
 
-            const receiver = results[0];
-
-            // Compare passwords
-            const isMatch = await bcrypt.compare(password, receiver.password);
-            if (!isMatch) {
-                return res.status(400).json({ success: false, message: "Invalid email or password." });
-            }
-
-            res.json({ 
-                success: true, 
-                nponame: receiver.nponame, 
-                redirect: "/receiver_dashboard.html" 
-            });
+        res.json({
+            success: true,
+            nponame: receiver.nponame,
+            redirect: "/receiver_dashboard.html"
         });
     } catch (error) {
         console.error("❌ Login Error:", error);
@@ -102,49 +83,33 @@ router.post("/verify", async (req, res) => {
     }
 
     try {
-        // Fetch receiver by nponame
-        db.query("SELECT * FROM receiver WHERE UPPER(nponame) = ?", [nponame.toUpperCase()], async (err, results) => {
-            if (err) {
-                console.error("MySQL Query Error:", err);
-                return res.status(500).json({ success: false, message: "Database error." });
-            }
+        const receiver = await Receiver.findOne({ nponame: { $regex: `^${nponame}$`, $options: "i" } });
 
-            if (results.length === 0) {
-                return res.status(404).json({ success: false, message: "Receiver not found." });
-            }
+        if (!receiver) {
+            return res.status(404).json({ success: false, message: "Receiver not found." });
+        }
 
-            const receiver = results[0];
+        const { isVerified, fetchedAddress } = await verifyNgo(receiver.nponame, receiver.regno);
 
-            // Perform verification
-            const { isVerified, fetchedAddress } = await verifyNgo(receiver.nponame, receiver.regno);
+        if (isVerified) {
+            receiver.verified = true;
+            receiver.address = fetchedAddress;
+            await receiver.save();
 
-            if (isVerified) {
-                // Update verification status in MySQL
-                db.query("UPDATE receiver SET verified = ?, address = ? WHERE id = ?", 
-                    [true, fetchedAddress, receiver.id], 
-                    (err) => {
-                        if (err) {
-                            console.error("MySQL Update Error:", err);
-                            return res.status(500).json({ success: false, message: "Database error." });
-                        }
-
-                        res.json({
-                            success: true,
-                            verified: true,
-                            message: "NGO verified successfully.",
-                            address: fetchedAddress,
-                        });
-                    }
-                );
-            } else {
-                res.json({
-                    success: false,
-                    verified: false,
-                    message: "NGO verification failed or registration number mismatch.",
-                    address: null,
-                });
-            }
-        });
+            res.json({
+                success: true,
+                verified: true,
+                message: "NGO verified successfully.",
+                address: fetchedAddress,
+            });
+        } else {
+            res.json({
+                success: false,
+                verified: false,
+                message: "NGO verification failed or registration number mismatch.",
+                address: null,
+            });
+        }
     } catch (err) {
         console.error("Verification error:", err);
         res.status(500).json({ success: false, message: "Server error during verification." });
@@ -160,25 +125,17 @@ router.post("/details", async (req, res) => {
     }
 
     try {
-        // Fetch receiver details
-        db.query("SELECT * FROM receiver WHERE UPPER(nponame) = ?", [nponame.toUpperCase()], (err, results) => {
-            if (err) {
-                console.error("MySQL Query Error:", err);
-                return res.status(500).json({ success: false, message: "Database error." });
-            }
+        const receiver = await Receiver.findOne({ nponame: { $regex: `^${nponame}$`, $options: "i" } });
 
-            if (results.length === 0) {
-                return res.status(404).json({ success: false, message: "Receiver not found." });
-            }
+        if (!receiver) {
+            return res.status(404).json({ success: false, message: "Receiver not found." });
+        }
 
-            const receiver = results[0];
-
-            res.json({
-                success: true,
-                nponame: receiver.nponame,
-                verified: receiver.verified,
-                address: receiver.verified ? receiver.address : "Verify First"
-            });
+        res.json({
+            success: true,
+            nponame: receiver.nponame,
+            verified: receiver.verified,
+            address: receiver.verified ? receiver.address : "Verify First"
         });
     } catch (error) {
         console.error("Error fetching details:", error);

@@ -1,32 +1,17 @@
-const db = require("../db"); // Import database connection from db.js
+const mongoose = require("mongoose");
 
-// ✅ Create Receiver Table if not exists
-const createReceiverTable = `
-CREATE TABLE IF NOT EXISTS receiver (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nponame VARCHAR(255) NOT NULL,
-    regno VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    verified BOOLEAN DEFAULT FALSE,
-    address VARCHAR(255) DEFAULT 'Verify First'
-)`;
-
-db.query(createReceiverTable, (err) => {
-    if (err) console.error("❌ Error creating receiver table:", err);
-    else console.log("✅ Receiver table is ready");
+// ✅ Receiver Schema
+const receiverSchema = new mongoose.Schema({
+    nponame: { type: String, required: true },
+    regno: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    verified: { type: Boolean, default: false },
+    address: { type: String, default: "Verify First" }
+}, {
+    collection: "receivers" // 🔥 This forces the name
 });
+// ✅ Receiver Model
+const Receiver = mongoose.model("Receiver", receiverSchema);
 
-// ✅ Function to add a new receiver
-const addReceiver = (nponame, regno, email, password, callback) => {
-    const sql = `INSERT INTO receiver (nponame, regno, email, password) VALUES (?, ?, ?, ?)`;
-    db.query(sql, [nponame.toUpperCase(), regno.toUpperCase(), email, password], callback);
-};
-
-// ✅ Function to get all receivers
-const getReceivers = (callback) => {
-    db.query("SELECT * FROM receiver", callback);
-};
-
-// ✅ Export Functions
-module.exports = { addReceiver, getReceivers };
+module.exports = Receiver;

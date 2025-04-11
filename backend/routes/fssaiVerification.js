@@ -1,7 +1,7 @@
 const express = require("express");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const db = require("../db"); // Import MySQL connection
+const donorModel = require("../models/Donor");
 
 const browserPaths = {
     edge: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -39,11 +39,16 @@ router.post("/start-fssai-verification", async (req, res) => {
         console.log("⚠️ No Edge/Chrome found. Using default Puppeteer Chromium.");
     }
 
-    browserInstance = await puppeteer.launch({
-        executablePath: browserExecutable || undefined,
-        headless: false,
-        args: ["--new-window", "--disable-gpu", "--no-sandbox"]
-    });
+    try {
+        browserInstance = await puppeteer.launch({
+            executablePath: browserExecutable || undefined,
+            headless: false,
+            args: ["--new-window", "--disable-gpu", "--no-sandbox"]
+        });
+    } catch (launchErr) {
+        console.error("❌ Browser Launch Error:", launchErr);
+        return res.status(500).json({ error: "Could not launch browser" });
+    }
 
     const page = await browserInstance.newPage();
     // Set default timeouts to 10 minutes (600000 ms)
@@ -56,7 +61,7 @@ router.post("/start-fssai-verification", async (req, res) => {
         console.log("✅ Expanding 'FBO Search' Section...");
         await page.waitForSelector("a#governmentAgencies1", { visible: true, timeout: 15000 });
         await page.evaluate(() => document.querySelector("a#governmentAgencies1").click());
-        await page.waitForTimeout(3000); // Extra delay for animation
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         console.log("⌛ Waiting for user to enter license & CAPTCHA...");
 
@@ -72,22 +77,22 @@ router.post("/start-fssai-verification", async (req, res) => {
         }
 
         console.log("✅ Extracting FSSAI Data...");
-        const extractedData = await page.evaluate(() => {
+        let extractedData = await page.evaluate(() => {
             const rows = document.querySelectorAll("#data-table-simple tr"); // Select table rows
             if (!rows.length) return { status: "No data found", address: "Address Not Found", regno: "Reg No Not Found" };
-        
+
             let extracted = { status: "No data found", address: "Address Not Found", regno: "Reg No Not Found" };
-        
+
             rows.forEach(row => {
                 const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent.trim()); // ✅ Use textContent.trim()
-        
+
                 if (cells.length > 3) {
                     extracted.status = cells.find(text => text.includes("Active")) || extracted.status;
                     extracted.address = cells[2] || extracted.address; // ✅ Extracting Address (Index 2)
                     extracted.regno = cells[3].replace(/\s+/g, '') || extracted.regno; // ✅ Extracting Reg No (Trimmed)
                 }
             });
-        
+
             return extracted;
         });
 
@@ -96,7 +101,7 @@ router.post("/start-fssai-verification", async (req, res) => {
         // ✅ Retry Extraction if Data is Incomplete
         if (!extractedData.address.includes(" ") || !extractedData.regno.includes(" ")) {
             console.log("⚠️ Data is incomplete, retrying extraction...");
-            await page.waitForTimeout(5000);
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             const retryData = await page.evaluate(() => {
                 const cells = Array.from(document.querySelectorAll("#data-table-simple td")).map(td => td.innerText.trim());
@@ -112,17 +117,22 @@ router.post("/start-fssai-verification", async (req, res) => {
             extractedData = retryData;
         }
 
-        // ✅ Update MySQL Database with verified, regno, and address
-        db.query("UPDATE donor SET verified = ?, regno = ?, address = ? WHERE email = ?", 
-            [extractedData.status.includes("Active") ? 1 : 0, extractedData.regno, extractedData.address, userEmail], 
-            (err, result) => {
-                if (err) {
-                    console.error("❌ Database Update Error:", err);
-                    return res.status(500).json({ error: "Database update failed" });
+        // ✅ Update MongoDB Donor collection with verified, regno, and address
+        await donorModel.updateOne(
+            { email: userEmail },
+            {
+                $set: {
+                    verified: extractedData.status.includes("Active"),
+                    regno: extractedData.regno,
+                    address: extractedData.address
                 }
-                console.log(`✅ Database Updated: ${userEmail} | Verified: ${extractedData.status.includes("Active")} | RegNo: ${extractedData.regno} | Address: ${extractedData.address}`);
             }
-        );
+        ).then(result => {
+            console.log(`✅ Database Updated: ${userEmail} | Verified: ${extractedData.status.includes("Active")} | RegNo: ${extractedData.regno} | Address: ${extractedData.address}`);
+        }).catch(err => {
+            console.error("❌ Database Update Error:", err);
+            return res.status(500).json({ error: "Database update failed" });
+        });
 
         // ✅ Close Puppeteer Only After All Data is Processed
         if (extractedData.address !== "Address Not Found" && extractedData.regno !== "Reg No Not Found") {

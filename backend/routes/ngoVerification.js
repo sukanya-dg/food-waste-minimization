@@ -1,9 +1,38 @@
-const puppeteer = require("puppeteer");
+let puppeteer;
+let launchOptions;
+
+async function getLaunchOptions() {
+  const isVercel = process.env.VERCEL === "1";
+
+  if (isVercel) {
+    const chromium = require("chrome-aws-lambda");
+    puppeteer = require("puppeteer-core");
+
+    return {
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath || "/usr/bin/chromium-browser",
+      headless: chromium.headless,
+    };
+  } else {
+    puppeteer = require("puppeteer");
+
+    return {
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    };
+  }
+}
 
 async function verifyNgo(ngoName, regno) {
   let browser;
   try {
-    browser = await puppeteer.launch({ headless: true });
+    // 💡 Get dynamic launch options
+    if (!launchOptions) {
+      launchOptions = await getLaunchOptions();
+    }
+
+    browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
 
     // 1) Go to NGO Darpan
@@ -45,18 +74,12 @@ async function verifyNgo(ngoName, regno) {
       };
     });
 
-    console.log("Fetched NGO Name:", fetchedNgoName);
-    console.log("Fetched Registration Info:", fetchedRegNo);
-    console.log("Fetched Address:", fetchedAddress);
-
     await browser.close();
 
-    // 6) Match NGO name
     if (fetchedNgoName !== ngoName.toUpperCase()) {
       return { isVerified: false, fetchedAddress: null };
     }
 
-    // 7) Check if regno exists in the fetched string
     const isVerified = fetchedRegNo.includes(regno.toUpperCase());
     return { isVerified, fetchedAddress };
   } catch (error) {

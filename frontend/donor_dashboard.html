@@ -203,6 +203,7 @@
     <!-- JavaScript -->
     <!-- REPLACE ONLY THIS JS SECTION in your original file -->
     <script>
+      const baseUrl = window.location.origin;
       document.addEventListener("DOMContentLoaded", async function () {
         const companyNameEl = document.getElementById("companyname");
         const verifyBtn = document.getElementById("verifyNow");
@@ -214,7 +215,7 @@
         async function fetchDonorDetails() {
           try {
             const response = await fetch(
-              "http://localhost:3000/api/donor/status",
+              `${baseUrl}/api/donor/status`,
               {
                 method: "GET",
                 credentials: "include",
@@ -240,7 +241,7 @@
         async function fetchVerificationStatus() {
           try {
             const response = await fetch(
-              "http://localhost:3000/api/donor/status"
+              `${baseUrl}/api/donor/status`
             );
             const data = await response.json();
 
@@ -264,7 +265,7 @@
               verificationStatus.innerText = "Starting verification...";
 
               const response = await fetch(
-                "http://localhost:3000/api/donor/start-fssai-verification",
+                `${baseUrl}/api/donor/start-fssai-verification`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

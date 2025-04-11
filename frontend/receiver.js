@@ -1,4 +1,5 @@
 const wrapper = document.querySelector(".wrapper");
+const baseUrl = window.location.origin;
 const registerLink = document.querySelector(".register-link");
 const loginLink = document.querySelector(".login-link");
 
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/api/receiver/signup", {
+        const response = await fetch(`${baseUrl}/api/receiver/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nponame, regno, email, password }),
@@ -65,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/api/receiver/login", {
+        const response = await fetch(`${baseUrl}/api/receiver/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -97,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch receiver details from backend
     try {
-      const detailsResponse = await fetch("http://localhost:3000/api/receiver/details", {
+      const detailsResponse = await fetch(`${baseUrl}/api/receiver/details`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nponame: storedNpoName }),
@@ -139,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     verifyBtn.disabled = true;
 
     try {
-      const response = await fetch("http://localhost:3000/api/receiver/verify", {
+      const response = await fetch(`${baseUrl}/api/receiver/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nponame: storedNpoName }),

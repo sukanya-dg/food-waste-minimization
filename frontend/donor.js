@@ -1,4 +1,5 @@
 const wrapper = document.querySelector(".wrapper");
+const baseUrl = window.location.origin;
 const registerLink = document.querySelector(".register-link");
 const loginLink = document.querySelector(".login-link");
 
@@ -42,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             try {
-                const response = await fetch("http://localhost:3000/api/donor/signup", {
+                const response = await fetch(`${baseUrl}/api/donor/signup`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ companyname, email, password }),
@@ -78,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             try {
-                const response = await fetch("http://localhost:3000/api/donor/login", {
+                const response = await fetch(`${baseUrl}/api/donor/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password }),
@@ -114,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.getElementById("startVerification")?.addEventListener("click", async () => {
     try {
-        const response = await fetch("http://localhost:3000/api/donor/start-fssai-verification", {
+        const response = await fetch(`${baseUrl}/api/donor/start-fssai-verification`, {
             method: "POST"
         });
         const data = await response.json();

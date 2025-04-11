@@ -1,4 +1,5 @@
 const wrapper = document.querySelector(".wrapper");
+const baseUrl = window.location.origin;
 const registerLink = document.querySelector(".register-link");
 const loginLink = document.querySelector(".login-link");
 
@@ -42,7 +43,7 @@ if (signupForm) {
         }
 
         try {
-            const response = await fetch("http://localhost:3000/api/customer/signup", {
+            const response = await fetch(`${baseUrl}/api/customer/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user, email, password }),
@@ -79,7 +80,7 @@ if (signupForm) {
             }
 
             try {
-                const response = await fetch("http://localhost:3000/api/customer/login", {
+                const response = await fetch(`${baseUrl}/api/customer/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password }),

@@ -61,15 +61,35 @@
     <main class="flex-1 p-6">
       <header class="flex justify-between items-center mb-5">
         <h1 class="text-2xl font-bold">Donor Dashboard</h1>
-        <div class="flex items-center gap-3">
-          <span class="relative text-red-500">
-            🔔<span
+        <div class="flex items-center gap-4">
+          <div class="relative text-red-500 text-xl cursor-pointer" id="notification-btn">
+            🔔
+            <span
+              id="notification-count"
               class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full"
-              >2</span
             >
-          </span>
-          <span class="bg-[#74A57F] text-white px-3 py-1 rounded-full">R</span>
+              0
+            </span>
+          
+            <!-- Notifications Dropdown -->
+            <div
+              id="notification-dropdown"
+              class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm"
+            >
+              <p class="text-gray-500">Loading...</p>
+            </div>
+          </div>
+          
+          <button
+            id="raiseComplaintBtn"
+            class="bg-green-700 text-white text-sm px-3 py-1 rounded hover:bg-yellow-600 transition"
+            >
+            📝 Raise Complaint
+          </button>
+
+          <span class="bg-[#74A57F] text-white px-3 py-1 rounded-full">D</span>
         </div>
+        
       </header>
 
       <!-- Donor Details Section -->
@@ -83,6 +103,11 @@
           <strong>Premises Address:</strong>
           <span id="address">Verify First</span>
         </p>
+        <p>
+          <strong>Phone Number:</strong>
+          <span id="phone">Loading...</span>
+        </p>
+        
 
         <!-- Verification Button -->
         <button
@@ -227,6 +252,11 @@
               companyNameEl.textContent = data.companyname || "Unknown Donor";
               addressEl.textContent = data.address || "Verify First";
               localStorage.setItem("donorcompanyname", data.companyname || "");
+              const phoneEl = document.getElementById("phone");
+
+// Inside fetchDonorDetails function, after setting companyNameEl and addressEl
+phoneEl.textContent = data.phone || "Not Available";
+
             } else {
               console.error("Failed to fetch donor details:", data.message);
               companyNameEl.textContent = "Unknown Donor";
@@ -308,5 +338,120 @@
         await fetchVerificationStatus();
       });
     </script>
+    <!-- Complaint Modal -->
+<div id="complaint-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+  <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
+    <h2 class="text-xl font-bold mb-4">Raise a Complaint</h2>
+    
+    <label class="block mb-2">Title</label>
+    <input type="text" id="complaint-title" class="w-full border border-gray-300 rounded p-2 mb-4" placeholder="Enter title..." />
+    
+    <label class="block mb-2">Description</label>
+    <textarea id="complaint-desc" class="w-full border border-gray-300 rounded p-2 mb-4" rows="4" placeholder="Describe your issue..."></textarea>
+
+    <p class="text-sm text-gray-600 mb-4"> Ticket Number: <span id="ticket-id" class="font-bold"></span></p>
+
+    <div class="flex justify-end gap-2">
+      <button id="cancel-complaint" class="px-4 py-2 rounded bg-gray-400 text-white">Cancel</button>
+      <button id="submit-complaint" class="px-4 py-2 rounded bg-blue-600 text-white">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+    const complaintModal = document.getElementById("complaint-modal");
+    const raiseComplaintBtn = document.getElementById("raiseComplaintBtn");
+    const cancelComplaintBtn = document.getElementById("cancel-complaint");
+    const submitComplaintBtn = document.getElementById("submit-complaint");
+  
+    raiseComplaintBtn.addEventListener("click", () => {
+      document.getElementById("complaint-title").value = "";
+      document.getElementById("complaint-desc").value = "";
+      document.getElementById("ticket-id").textContent = generateTicketID();
+      complaintModal.classList.remove("hidden");
+    });
+  
+    cancelComplaintBtn.addEventListener("click", () => {
+      complaintModal.classList.add("hidden");
+    });
+  
+    submitComplaintBtn.addEventListener("click", async () => {
+      const title = document.getElementById("complaint-title").value.trim();
+      const desc = document.getElementById("complaint-desc").value.trim();
+      const ticketId = document.getElementById("ticket-id").textContent;
+  
+      if (!title || !desc) {
+        alert("Please fill in all fields.");
+        return;
+      }
+  
+      try {
+        const response = await fetch(`${baseUrl}/api/complaints/raise`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title, description: desc, ticketId }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          alert("Complaint submitted successfully!");
+          complaintModal.classList.add("hidden");
+        } else {
+          alert("Error submitting complaint: " + data.message);
+        }
+      } catch (error) {
+        console.error("Complaint error:", error);
+        alert("Something went wrong. Try again.");
+      }
+    });
+  
+    function generateTicketID() {
+      return "#" + Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+    }
+  </script>
+  
+  <script>
+    const notifBtn = document.getElementById("notification-btn");
+    const notifDropdown = document.getElementById("notification-dropdown");
+    const notifCount = document.getElementById("notification-count");
+  
+    notifBtn.addEventListener("click", async () => {
+      notifDropdown.classList.toggle("hidden");
+  
+      try {
+        const response = await fetch(`${baseUrl}/api/donor/notifications`, {
+          credentials: "include"
+        });
+        const data = await response.json();
+  
+        if (Array.isArray(data.notifications) && data.notifications.length > 0) {
+          notifCount.textContent = data.notifications.length;
+          notifDropdown.innerHTML = "";
+  
+          data.notifications.forEach((notif) => {
+            const notifEl = document.createElement("div");
+            notifEl.className = "bg-gray-100 p-2 rounded text-black";
+            notifEl.innerHTML = `
+              <p><strong>Receiver:</strong> ${notif.receiver_name}</p>
+              <p><strong>Approved:</strong> ${notif.message}</p>
+              <p><strong>Location:</strong> ${notif.location}</p>
+              <p><strong>Contact:</strong> ${notif.phone}</p>
+            `;
+            notifDropdown.appendChild(notifEl);
+          });
+        } else {
+          notifDropdown.innerHTML = '<p class="text-gray-500">No new notifications.</p>';
+          notifCount.textContent = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        notifDropdown.innerHTML = '<p class="text-red-500">Failed to load notifications.</p>';
+      }
+    });
+  </script>
+  
+
   </body>
 </html>

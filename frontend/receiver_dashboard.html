@@ -51,12 +51,25 @@
     <header class="flex justify-between items-center mb-5">
       <h1 class="text-2xl font-bold">Receiver Dashboard</h1>
       <div class="flex items-center gap-3">
-        <span class="relative text-red-500">
-          🔔<span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">2</span>
-        </span>
+        <div class="relative">
+          <button id="notification-btn" class="relative text-red-500 focus:outline-none">
+            🔔
+            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">0</span>
+          </button>
+          <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white text-black rounded shadow-lg z-50 max-h-96 overflow-auto">
+            <ul id="notification-list" class="p-4 space-y-2">
+              <!-- Notifications will be injected here -->
+            </ul>
+          </div>
+        </div>
+        
+        <button id="raise-complaint-btn" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-red-700 transition">
+          📝 Raise Complaint
+        </button>
         <span class="bg-[#74A57F] text-white px-3 py-1 rounded-full">R</span>
       </div>
     </header>
+    
 
     <!-- Receiver Details Section -->
     <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
@@ -167,6 +180,142 @@
       fetchFoodListings();
     });
   </script>
+  
+  <!-- Complaint Modal -->
+<div id="complaint-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+  <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
+    <h2 class="text-xl font-bold mb-4">Raise a Complaint</h2>
+    
+    <label class="block mb-2">Title</label>
+    <input type="text" id="complaint-title" class="w-full border border-gray-300 rounded p-2 mb-4" placeholder="Enter title..." />
+    
+    <label class="block mb-2">Description</label>
+    <textarea id="complaint-desc" class="w-full border border-gray-300 rounded p-2 mb-4" rows="4" placeholder="Describe your issue..."></textarea>
+
+    <p class="text-sm text-gray-600 mb-4">Ticket Number: <span id="ticket-id" class="font-bold"></span></p>
+
+    <div class="flex justify-end gap-2">
+      <button id="cancel-complaint" class="px-4 py-2 rounded bg-gray-400 text-white">Cancel</button>
+      <button id="submit-complaint" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Submit</button>
+    </div>
+  </div>
+</div>
+<script>
+  const modal = document.getElementById("complaint-modal");
+  const ticketIdSpan = document.getElementById("ticket-id");
+
+  document.getElementById("raise-complaint-btn").addEventListener("click", () => {
+  const ticketNumber = "#" + Math.floor(Math.random() * 90000 + 10000);
+  ticketIdSpan.textContent = ticketNumber;
+
+  // Clear the input fields before showing the modal
+  document.getElementById("complaint-title").value = "";
+  document.getElementById("complaint-desc").value = "";
+
+  modal.classList.remove("hidden");
+});
+
+
+  document.getElementById("cancel-complaint").addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  document.getElementById("submit-complaint").addEventListener("click", () => {
+    const title = document.getElementById("complaint-title").value.trim();
+    const desc = document.getElementById("complaint-desc").value.trim();
+    const ticketId = ticketIdSpan.textContent;
+
+    if (!title || !desc) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    // Example placeholder for sending to DB
+    const complaintData = {
+      ticketId,
+      title,
+      description: desc,
+      createdAt: new Date().toISOString()
+    };
+
+    console.log("Complaint Submitted:", complaintData);
+
+    // 🔧 Example POST to server API
+    
+    /*fetch("/api/submitComplaint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(complaintData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert("Complaint submitted successfully!");
+      modal.classList.add("hidden");
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Failed to submit complaint.");
+    });
+    */
+
+    alert(`Complaint submitted! Your ticket number is ${ticketId}`);
+    modal.classList.add("hidden");
+  });
+</script>
+<script>
+  const notificationBtn = document.getElementById("notification-btn");
+  const dropdown = document.getElementById("notification-dropdown");
+  const notificationList = document.getElementById("notification-list");
+  const notificationCount = document.getElementById("notification-count");
+
+  notificationBtn.addEventListener("click", async () => {
+    dropdown.classList.toggle("hidden");
+
+    // Only fetch if dropdown is visible
+    if (!dropdown.classList.contains("hidden")) {
+      try {
+        const response = await fetch('/api/receiver/notifications'); // Update endpoint as needed
+        const notifications = await response.json();
+
+        notificationList.innerHTML = "";
+
+        if (notifications.length === 0) {
+          notificationList.innerHTML = "<li class='text-sm text-gray-500'>No new notifications</li>";
+        } else {
+          notifications.forEach(n => {
+            const li = document.createElement("li");
+            li.className = "bg-gray-100 p-3 rounded shadow text-sm";
+
+            li.innerHTML = `
+              <p><strong>${n.donorName}</strong> has approved your request.</p>
+              <p><strong>Address:</strong> ${n.address}</p>
+              <p><strong>Location:</strong> ${n.location}</p>
+              <p><strong>Phone:</strong> ${n.phone}</p>
+              <p class="text-green-600 font-semibold mt-1">✅ Approved</p>
+            `;
+
+            notificationList.appendChild(li);
+          });
+        }
+
+        // Update count
+        notificationCount.textContent = notifications.length;
+
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        notificationList.innerHTML = "<li class='text-sm text-red-500'>Failed to load notifications</li>";
+      }
+    }
+  });
+
+  // Optional: Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!notificationBtn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add("hidden");
+    }
+  });
+</script>
+
 </body>
 </html>
 

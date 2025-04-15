@@ -14,7 +14,6 @@ require("./db");
 const receiverRoutes = require("./routes/receiverRoutes");
 const donorRoutes = require("./routes/donorRoutes");
 const customerRoutes = require("./routes/customerRoutes");
-const fssaiVerificationRoute = require("./routes/fssaiVerification");
 
 // ✅ Initialize Express
 const app = express();
@@ -36,7 +35,6 @@ app.use(session({
 // ✅ Use Routes
 app.use("/api/receiver", receiverRoutes);
 app.use("/api/donor", donorRoutes);
-app.use("/api/donor", fssaiVerificationRoute); // Same base path is okay — different subpaths
 app.use("/api/customer", customerRoutes);
 
 // ✅ Server Homepage

@@ -172,6 +172,35 @@
         </table>
       </div>
     </main>
+    <!-- FSSAI License Modal -->
+    <div
+      id="fssai-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden"
+    >
+      <div class="bg-white text-black p-6 rounded shadow-md w-80">
+        <h3 class="text-lg font-bold mb-3">Enter FSSAI License No.</h3>
+        <input
+          type="text"
+          id="fssai-license-input"
+          placeholder="License / Registration No."
+          class="w-full p-2 border rounded mb-4"
+        />
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancel-modal"
+            class="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+          <button
+            id="submit-license"
+            class="bg-[#74A57F] text-white px-3 py-1 rounded hover:bg-green-600"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script>
       // Initialize total food saved (if needed)
@@ -267,10 +296,9 @@
       });
     </script>
 
-    <!-- JavaScript -->
-    <!-- REPLACE ONLY THIS JS SECTION in your original file -->
     <script>
       const baseUrl = window.location.origin;
+
       document.addEventListener("DOMContentLoaded", async function () {
         const companyNameEl = document.getElementById("companyname");
         const verifyBtn = document.getElementById("verifyNow");
@@ -278,16 +306,13 @@
           document.getElementById("verificationStatus");
         const addressEl = document.getElementById("address");
 
-        // ✅ Fetch donor details from /api/donor/status
+        // ✅ Fetch donor details
         async function fetchDonorDetails() {
           try {
-            const response = await fetch(
-              `${baseUrl}/api/donor/status`,
-              {
-                method: "GET",
-                credentials: "include",
-              }
-            );
+            const response = await fetch(`${baseUrl}/api/donor/status`, {
+              method: "GET",
+              credentials: "include",
+            });
             const data = await response.json();
 
             if (response.ok) {
@@ -309,18 +334,15 @@ phoneEl.textContent = data.phone || "Not Available";
           }
         }
 
-        // ✅ Fetch verification status and update button
+        // ✅ Fetch verification status
         async function fetchVerificationStatus() {
           try {
-            const response = await fetch(
-              `${baseUrl}/api/donor/status`
-            );
+            const response = await fetch(`${baseUrl}/api/donor/status`);
             const data = await response.json();
 
             if (!verificationStatus || !verifyBtn) return;
 
             if (data.verified) {
-              verificationStatus.innerText = "✅ FSSAI License is VALID!";
               verifyBtn.innerText = "Verified ✅";
               verifyBtn.disabled = true;
               verifyBtn.classList.add("bg-[#74A57F]");
@@ -330,38 +352,66 @@ phoneEl.textContent = data.phone || "Not Available";
           }
         }
 
-        // ✅ Handle "Verify Now" button
+        // ✅ Show modal on Verify Now
         if (verifyBtn) {
-          verifyBtn.addEventListener("click", async function () {
-            try {
-              verificationStatus.innerText = "Starting verification...";
+          verifyBtn.addEventListener("click", () => {
+            document.getElementById("fssai-modal").classList.remove("hidden");
+          });
+        }
 
-              const response = await fetch(
-                `${baseUrl}/api/donor/start-fssai-verification`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  credentials: "include",
-                }
-              );
+        // ✅ Cancel modal
+        document
+          .getElementById("cancel-modal")
+          .addEventListener("click", () => {
+            document.getElementById("fssai-modal").classList.add("hidden");
+          });
+
+        // ✅ Submit license
+        document
+          .getElementById("submit-license")
+          .addEventListener("click", async () => {
+            const licenseNo = document
+              .getElementById("fssai-license-input")
+              .value.trim();
+            if (!licenseNo) {
+              alert("Please enter your License/Registration No.");
+              return;
+            }
+
+            if (
+              !confirm(
+                "Are you sure you want to submit this License/Registration No.?"
+              )
+            ) {
+              return;
+            }
+
+            document.getElementById("fssai-modal").classList.add("hidden");
+
+            try {
+              const response = await fetch(`${baseUrl}/api/donor/verify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ license: licenseNo }),
+              });
 
               const data = await response.json();
 
-              if (data.valid) {
-                verificationStatus.innerText = "✅ FSSAI License is VALID!";
+              if (data.success && data.verified) {
                 verifyBtn.innerText = "Verified ✅";
                 verifyBtn.disabled = true;
                 verifyBtn.classList.add("bg-[#74A57F]");
-              } else {
-                verificationStatus.innerText =
-                  "❌ No records found. Invalid FSSAI number.";
               }
+
+              // Update address immediately without refreshing
+              addressEl.textContent = data.address || "Address not available";
             } catch (error) {
               console.error("Verification Error:", error);
-              verificationStatus.innerText = "⚠ Failed to start verification.";
+              verificationStatus.innerText =
+                "❌ No records found. Invalid FSSAI number.";
             }
           });
-        }
 
         // ✅ Logout
         document

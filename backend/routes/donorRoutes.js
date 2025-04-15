@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const Donor = require("../models/Donor");
+const { verifyFSSAI } = require("./fssaiVerification");
 const Donation = require("../models/Donation");
 
 // ✅ Signup Route
@@ -96,6 +97,9 @@ router.get("/status", async (req, res) => {
         res.status(500).json({ success: false, message: "Database error" });
     }
 });
+
+// ✅ FSSAI verification endpoint (moved here)
+router.post("/verify", verifyFSSAI);
 
 // ✅ Logout Route
 router.get("/logout", (req, res) => {

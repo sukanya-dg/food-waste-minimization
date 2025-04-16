@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const Donor = require("../models/Donor");
 const { verifyFSSAI } = require("./fssaiVerification");
+const Donation = require("../models/Donation");
 
 // ✅ Signup Route
 router.post("/signup", async (req, res) => {
@@ -110,6 +111,57 @@ router.get("/logout", (req, res) => {
         }
         res.status(200).json({ success: true, message: "Logged out successfully!" });
     });
+});
+
+// Add this new route
+router.post("/donations", async (req, res) => {
+    if (!req.session.Donor) {
+        return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    try {
+        const { title, type, quantity, expiryDate, status } = req.body;
+
+        // Create new donation
+        const donation = await Donation.create({
+            donorId: req.session.Donor.id,
+            title,
+            type,
+            quantity,
+            expiryDate,
+            status
+        });
+
+        res.status(201).json({
+            success: true,
+            donation
+        });
+
+    } catch (error) {
+        console.error("Donation Creation Error:", error);
+        res.status(500).json({ success: false, message: "Failed to create donation" });
+    }
+});
+
+// Add this route to get donor's donations
+router.get("/donations", async (req, res) => {
+    if (!req.session.Donor) {
+        return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    try {
+        const donations = await Donation.find({ donorId: req.session.Donor.id })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            donations
+        });
+
+    } catch (error) {
+        console.error("Fetch Donations Error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch donations" });
+    }
 });
 
 module.exports = router;

@@ -18,7 +18,7 @@
       background: #8C4A3E;
       padding: 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 1.5rem;
       color: white;
       display: flex;
       justify-content: center;
@@ -49,12 +49,12 @@
       text-align: center;
     }
     .sidebar-title {
-      font-size: 20px;
+      font-size: 1.25rem;
       font-weight: bold;
       margin-bottom: 10px;
     }
     .sidebar-subtitle {
-      font-size: 14px;
+      font-size: 0.875rem;
       margin-bottom: 20px;
       color: #F6E6D8;
     }
@@ -86,6 +86,7 @@
       padding: 10px;
       border-bottom: 1px solid #ddd;
       cursor: pointer;
+      font-size: 0.875rem;
     }
     .ticket-item:hover {
       background: #E0C1A3;
@@ -98,19 +99,78 @@
       display: none;
       margin-top: 20px;
     }
+    .notification-bell {
+      position: relative;
+      cursor: pointer;
+    }
+    .notification-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      right: 20px;
+      top: 60px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    .notification-item {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+      color: #333;
+      font-size: 0.875rem;
+    }
+    .notification-item:hover {
+      background: #f5f5f5;
+    }
+    .notification-item.unread {
+      background: #f0f0f0;
+    }
+    .notification-item p {
+      margin: 0 0 5px 0;
+      color: #333;
+      font-size: 0.875rem;
+    }
+    .notification-item small {
+      color: #666;
+      font-size: 0.75rem;
+    }
+    .notification-item strong {
+      color: #8C4A3E;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     Customer Service Dashboard
+    <div class="notification-bell" id="notification-btn">
+      🔔
+      <span class="notification-count" id="notification-count">0</span>
+    </div>
+    <div class="notification-dropdown" id="notification-dropdown">
+      <!-- Notifications will be inserted here -->
+    </div>
     <img src="profile.jpg" alt="Profile" class="profile-pic" id="profile-pic">
   </div>
   <div class="main-container">
     <div class="sidebar">
       <div class="sidebar-title">Aahar Link</div>
       <div class="sidebar-subtitle">Customer Service Dashboard</div>
-      <button class="button" onclick="loadTickets('open')">View Open Complaints</button>
-      <button class="button" onclick="loadTickets('resolved')">View Resolved Complaints</button>
+      <button class="button" onclick="loadTickets('Open')">View Open Complaints</button>
+      <button class="button" onclick="loadTickets('Resolved')">View Resolved Complaints</button>
       <div id="ticket-list"></div>
       <button class="button logout-button" onclick="logout()">Logout</button>
     </div>
@@ -132,46 +192,127 @@
     </div>
   </div>
   <script>
-    const tickets = {
-      open: [
-        { id: 101, user: "Donor/Receiver", date: "2025-03-18", status: "Open", description: "Food issue" },
-        { id: 102, user: "Donor/Receiver", date: "2025-03-17", status: "Open", description: "Delivery delay" }
-      ],
-      resolved: []
-    };
-    
-    function loadTickets(status) {
+    const baseUrl = window.location.origin; // Set your base API URL
+
+    let allComplaints = [];
+    let notifications = [];
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/complaints/all`, {
+          credentials: 'include'  // Important: Include cookies for session
+        });
+        const data = await res.json();
+        console.log("Complaints fetched from API:", data);  // Debugging log
+        if (data.success) {
+          allComplaints = data.complaints;
+          loadTickets("Open");  // Load "Open" complaints by default
+        } else {
+          alert("Failed to load complaints.");
+        }
+      } catch (error) {
+        console.error("Error fetching complaints:", error);
+      }
+    });
+
+    function loadTickets(statusFilter) {
       const list = document.getElementById("ticket-list");
       list.innerHTML = "";
-      tickets[status].forEach(ticket => {
+
+      console.log("Filtering complaints with status:", statusFilter);
+      const filtered = allComplaints.filter(ticket => ticket.status === statusFilter);
+
+      console.log("Filtered complaints:", filtered);  // Debugging log
+
+      if (filtered.length === 0) {
+        list.innerHTML = "<p>No complaints found.</p>";
+        return;
+      }
+
+      filtered.forEach(ticket => {
         const div = document.createElement("div");
         div.className = "ticket-item";
-        div.innerText = `#${ticket.id} - ${ticket.description}`;
+        div.innerText = `#${ticket.ticketId} - ${ticket.title}`;
         div.onclick = () => showTicket(ticket);
         list.appendChild(div);
       });
     }
-    
+
     function showTicket(ticket) {
       document.getElementById("ticket-details").innerHTML = `
-        <p><strong>Ticket ID:</strong> ${ticket.id}</p>
-        <p><strong>User:</strong> ${ticket.user}</p>
-        <p><strong>Date:</strong> ${ticket.date}</p>
-        <p><strong>Status:</strong> ${ticket.status}</p>
-        <p><strong>Description:</strong> ${ticket.description}</p>
+        <div class="bg-white text-black rounded-lg shadow-lg w-full max-h-[70vh] flex flex-col">
+          <div class="p-6 flex-none border-b">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-bold">Ticket #${ticket.ticketId}</h3>
+            </div>
+          </div>
+          <div class="p-6 overflow-y-auto flex-1">
+            <p class="mb-2"><strong>User Type:</strong> ${ticket.userType}</p>
+            <p class="mb-2"><strong>Status:</strong> ${ticket.status}</p>
+            <p class="mb-2"><strong>Date:</strong> ${new Date(ticket.createdAt).toLocaleString()}</p>
+            <p class="mb-2"><strong>Title:</strong> ${ticket.title}</p>
+            <p class="mb-4"><strong>Description:</strong> ${ticket.description}</p>
+            <div class="replies-section">
+              <h4 class="font-bold mb-2">Replies:</h4>
+              ${ticket.replies.map(reply => `
+                <div class="reply-item ${reply.sender === 'agent' ? 'agent' : ''} mb-2">
+                  <p><strong>${reply.sender === 'agent' ? 'Customer Agent' : 'User'}:</strong></p>
+                  <p>${reply.message}</p>
+                  <small>${new Date(reply.timestamp).toLocaleString()}</small>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
       `;
-      document.getElementById("reply-section").style.display = "block";
+      document.getElementById("reply-section").style.display = ticket.status === "Resolved" ? "none" : "block";
+      window.selectedTicketId = ticket._id;
     }
 
-    function submitReply() {
-      const status = document.getElementById("status").value;
-      if (status === "Resolved") {
-        const ticket = tickets.open.shift();
-        ticket.status = "Resolved";
-        tickets.resolved.push(ticket);
+    async function submitReply() {
+      const replyText = document.getElementById("reply-text").value;
+      const newStatus = document.getElementById("status").value;
+      if (!replyText) return;
+
+      try {
+        const res = await fetch(
+          `${baseUrl}/api/complaints/update/${window.selectedTicketId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              reply: replyText,
+              sender: "agent", // Always send as agent
+              status: newStatus // Include the status update
+            }),
+          }
+        );
+
+        const data = await res.json();
+        if (data.success) {
+          alert("Reply submitted successfully");
+          // Clear the reply text
+          document.getElementById("reply-text").value = "";
+          // Refresh the complaints list
+          const fresh = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: 'include'
+          });
+          const updatedData = await fresh.json();
+          allComplaints = updatedData.complaints;
+          loadTickets("Open");
+          
+          // Clear the ticket details and hide reply section
+          document.getElementById("ticket-details").innerHTML = "Select a complaint to view details.";
+          document.getElementById("reply-section").style.display = "none";
+        } else {
+          alert("Failed to submit reply: " + (data.message || "Unknown error"));
+        }
+      } catch (error) {
+        console.error("Error submitting reply:", error);
+        alert("Failed to submit reply. Please try again.");
       }
-      alert("Reply submitted successfully!");
-      loadTickets("open");
     }
 
     function logout() {
@@ -180,6 +321,82 @@
         window.location.href = "/customer_login.html";
       }
     }
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch(`${baseUrl}/api/complaints/all`, {
+          credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          // Get all complaints that either:
+          // 1. Have no replies (new complaints)
+          // 2. Have replies where the last reply is from a user (new user replies)
+          const newNotifications = data.complaints.filter(complaint => {
+            if (complaint.replies.length === 0) return true;
+            const lastReply = complaint.replies[complaint.replies.length - 1];
+            return lastReply.sender === 'user';
+          });
+
+          updateNotificationUI(newNotifications);
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    }
+
+    function updateNotificationUI(newNotifications) {
+      const dropdown = document.getElementById('notification-dropdown');
+      const count = document.getElementById('notification-count');
+
+      // Update notification count
+      count.textContent = newNotifications.length;
+
+      // Update dropdown content
+      dropdown.innerHTML = newNotifications.length === 0 
+        ? '<div class="notification-item">No new notifications</div>'
+        : newNotifications.map(notification => `
+            <div class="notification-item" onclick="handleNotificationClick('${notification._id}')">
+              <p><strong>${notification.replies.length === 0 ? 'New Complaint' : 'New Reply'}</strong></p>
+              <p>Ticket #${notification.ticketId} - ${notification.title}</p>
+              <small>${new Date(
+                notification.replies.length === 0 
+                  ? notification.createdAt 
+                  : notification.replies[notification.replies.length - 1].timestamp
+              ).toLocaleString()}</small>
+            </div>
+          `).join('');
+    }
+
+    function handleNotificationClick(ticketId) {
+      // Find the complaint in allComplaints
+      const ticket = allComplaints.find(c => c._id === ticketId);
+      if (ticket) {
+        // Hide dropdown
+        document.getElementById('notification-dropdown').style.display = 'none';
+        // Show ticket details
+        showTicket(ticket);
+      }
+    }
+
+    // Add click handler for notification bell
+    document.getElementById('notification-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('notification-dropdown');
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#notification-btn')) {
+        document.getElementById('notification-dropdown').style.display = 'none';
+      }
+    });
+
+    // Load notifications periodically
+    setInterval(loadNotifications, 30000); // Every 30 seconds
+    loadNotifications(); // Initial load
   </script>
 </body>
 </html>

@@ -13,6 +13,51 @@
       .bg-opacity {
         background-color: rgba(38, 63, 43, 0.6);
       }
+      .notification-bell {
+        position: absolute;
+        right: 70px;
+        cursor: pointer;
+        font-size: 24px;
+      }
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 20px;
+        top: 60px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        width: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .notification-item {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+      }
+      .notification-item:hover {
+        background: #e0c1a3;
+      }
+      .notification-item.unread {
+        background: #f6e6d8;
+      }
+      .replies-section {
+        margin-top: 20px;
+        padding: 10px;
+        background: #f6e6d8;
+        border-radius: 8px;
+      }
+      .reply-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+      }
+      .reply-item.agent {
+        background: #e0c1a3;
+      }
     </style>
   </head>
   <body class="flex bg-opacity text-white">
@@ -62,7 +107,10 @@
       <header class="flex justify-between items-center mb-5">
         <h1 class="text-2xl font-bold">Donor Dashboard</h1>
         <div class="flex items-center gap-4">
-          <div class="relative text-red-500 text-xl cursor-pointer" id="notification-btn">
+          <div
+            class="relative text-red-500 text-xl cursor-pointer"
+            id="notification-btn"
+          >
             🔔
             <span
               id="notification-count"
@@ -70,7 +118,7 @@
             >
               0
             </span>
-          
+
             <!-- Notifications Dropdown -->
             <div
               id="notification-dropdown"
@@ -79,17 +127,16 @@
               <p class="text-gray-500">Loading...</p>
             </div>
           </div>
-          
+
           <button
             id="raiseComplaintBtn"
             class="bg-green-700 text-white text-sm px-3 py-1 rounded hover:bg-yellow-600 transition"
-            >
+          >
             📝 Raise Complaint
           </button>
 
           <span class="bg-[#74A57F] text-white px-3 py-1 rounded-full">D</span>
         </div>
-        
       </header>
 
       <!-- Donor Details Section -->
@@ -107,7 +154,6 @@
           <strong>Phone Number:</strong>
           <span id="phone">Loading...</span>
         </p>
-        
 
         <!-- Verification Button -->
         <button
@@ -255,8 +301,215 @@
     </script>
 
     <script>
+      // Define baseUrl at the top of the file
       const baseUrl = window.location.origin;
+      let notifications = [];
 
+      async function loadNotifications() {
+        try {
+          console.log("Loading notifications...");
+          const res = await fetch(`${baseUrl}/api/complaints/notifications`, {
+            credentials: "include", // Important: Include cookies for session
+          });
+          const data = await res.json();
+          console.log("Notifications response:", data);
+
+          if (data.success) {
+            notifications = data.notifications;
+            updateNotificationUI();
+          } else {
+            console.error("Failed to load notifications:", data.message);
+          }
+        } catch (error) {
+          console.error("Error loading notifications:", error);
+        }
+      }
+
+      function updateNotificationUI() {
+        const dropdown = document.getElementById("notification-dropdown");
+        const count = document.getElementById("notification-count");
+
+        // Update notification count
+        const unreadCount = notifications.filter((n) => !n.read).length;
+        count.textContent = unreadCount;
+
+        dropdown.innerHTML =
+          notifications.length === 0
+            ? "<p>No notifications</p>"
+            : notifications
+                .map(
+                  (notification) => `
+              <div class="notification-item ${
+                notification.read ? "" : "unread"
+              }" 
+                   onclick="handleNotificationClick('${notification._id}', '${
+                    notification.ticketId
+                  }')">
+                <p>${notification.message}</p>
+                <small>${new Date(
+                  notification.timestamp
+                ).toLocaleString()}</small>
+              </div>
+            `
+                )
+                .join("");
+      }
+
+      async function handleNotificationClick(notificationId, ticketId) {
+        try {
+          // Mark notification as read
+          await fetch(
+            `${baseUrl}/api/complaints/notifications/${notificationId}/read`,
+            {
+              method: "PUT",
+              credentials: "include", // Important: Include cookies for session
+            }
+          );
+
+          // Show the ticket details
+          const res = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: "include", // Important: Include cookies for session
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            const ticket = data.complaints.find((t) => t.ticketId === ticketId);
+            if (ticket) {
+              showTicketDetails(ticket);
+              loadNotifications(); // Refresh notifications
+            }
+          }
+        } catch (error) {
+          console.error("Error handling notification click:", error);
+        }
+      }
+
+      function showTicketDetails(ticket) {
+        // Create a modal to show ticket details
+        const modal = document.createElement("div");
+        modal.className =
+          "modal-ticket-reply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4";
+        modal.innerHTML = `
+          <div class="bg-white text-black rounded-lg shadow-lg w-full max-w-md max-h-[90vh] flex flex-col">
+            <div class="p-6 flex-none border-b">
+              <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold">Ticket #${ticket.ticketId}</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
+              </div>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+              <p class="mb-2"><strong>Status:</strong> ${ticket.status}</p>
+              <p class="mb-2"><strong>Title:</strong> ${ticket.title}</p>
+              <p class="mb-4"><strong>Description:</strong> ${
+                ticket.description
+              }</p>
+              <div class="replies-section">
+                <h4 class="font-bold mb-2">Replies:</h4>
+                ${ticket.replies
+                  .map(
+                    (reply) => `
+                  <div class="reply-item ${
+                    reply.sender === "agent" ? "agent" : ""
+                  } mb-2">
+                    <p><strong>${
+                      reply.sender === "agent" ? "Customer Support" : "You"
+                    }:</strong></p>
+                    <p>${reply.message}</p>
+                    <small>${new Date(reply.timestamp).toLocaleString()}</small>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+            ${
+              ticket.status === "Open"
+                ? `
+              <div class="p-6 flex-none border-t">
+                <h4 class="font-bold mb-2">Reply:</h4>
+                <textarea id="reply-text" rows="4" class="w-full border rounded p-2 mb-2" placeholder="Type your reply here..."></textarea>
+                <button onclick="submitReply('${ticket._id}')" class="bg-[#74A57F] text-white px-4 py-2 rounded">Submit Reply</button>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+
+      async function submitReply(ticketId) {
+        const replyText = document.getElementById("reply-text").value;
+        if (!replyText) return;
+
+        try {
+          // First check if the complaint is still open
+          const checkRes = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: "include",
+          });
+          const checkData = await checkRes.json();
+
+          if (checkData.success) {
+            const ticket = checkData.complaints.find((t) => t._id === ticketId);
+            if (!ticket || ticket.status !== "Open") {
+              alert("Cannot reply to a resolved complaint");
+              return;
+            }
+
+            const res = await fetch(
+              `${baseUrl}/api/complaints/update/${ticketId}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  reply: replyText,
+                  sender: "user", // Always send as user
+                }),
+              }
+            );
+
+            const data = await res.json();
+            if (data.success) {
+              alert("Reply submitted successfully");
+              // Remove the modal
+              const modal = document.querySelector(".modal-ticket-reply");
+              if (modal) {
+                modal.remove();
+              }
+
+              // Refresh notifications
+              loadNotifications();
+            } else {
+              alert(
+                "Failed to submit reply: " + (data.message || "Unknown error")
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error submitting reply:", error);
+          alert("Failed to submit reply. Please try again.");
+        }
+      }
+
+      // Load notifications periodically
+      setInterval(loadNotifications, 30000); // Every 30 seconds
+      loadNotifications(); // Initial load
+
+      // Add click handler for notification bell
+      document
+        .getElementById("notification-btn")
+        .addEventListener("click", () => {
+          const dropdown = document.getElementById("notification-dropdown");
+          dropdown.classList.toggle("hidden");
+          if (!dropdown.classList.contains("hidden")) {
+            loadNotifications(); // Refresh notifications when dropdown is opened
+          }
+        });
+    </script>
+
+    <script>
       document.addEventListener("DOMContentLoaded", async function () {
         const companyNameEl = document.getElementById("companyname");
         const verifyBtn = document.getElementById("verifyNow");
@@ -279,9 +532,8 @@
               localStorage.setItem("donorcompanyname", data.companyname || "");
               const phoneEl = document.getElementById("phone");
 
-// Inside fetchDonorDetails function, after setting companyNameEl and addressEl
-phoneEl.textContent = data.phone || "Not Available";
-
+              // Inside fetchDonorDetails function, after setting companyNameEl and addressEl
+              phoneEl.textContent = data.phone || "Not Available";
             } else {
               console.error("Failed to fetch donor details:", data.message);
               companyNameEl.textContent = "Unknown Donor";
@@ -389,119 +641,118 @@ phoneEl.textContent = data.phone || "Not Available";
       });
     </script>
     <!-- Complaint Modal -->
-<div id="complaint-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
-  <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
-    <h2 class="text-xl font-bold mb-4">Raise a Complaint</h2>
-    
-    <label class="block mb-2">Title</label>
-    <input type="text" id="complaint-title" class="w-full border border-gray-300 rounded p-2 mb-4" placeholder="Enter title..." />
-    
-    <label class="block mb-2">Description</label>
-    <textarea id="complaint-desc" class="w-full border border-gray-300 rounded p-2 mb-4" rows="4" placeholder="Describe your issue..."></textarea>
+    <div
+      id="complaint-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50"
+    >
+      <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
+        <h2 class="text-xl font-bold mb-4">Raise a Complaint</h2>
 
-    <p class="text-sm text-gray-600 mb-4"> Ticket Number: <span id="ticket-id" class="font-bold"></span></p>
+        <label class="block mb-2">Title</label>
+        <input
+          type="text"
+          id="complaint-title"
+          class="w-full border border-gray-300 rounded p-2 mb-4"
+          placeholder="Enter title..."
+        />
 
-    <div class="flex justify-end gap-2">
-      <button id="cancel-complaint" class="px-4 py-2 rounded bg-gray-400 text-white">Cancel</button>
-      <button id="submit-complaint" class="px-4 py-2 rounded bg-blue-600 text-white">Submit</button>
+        <label class="block mb-2">Description</label>
+        <textarea
+          id="complaint-desc"
+          class="w-full border border-gray-300 rounded p-2 mb-4"
+          rows="4"
+          placeholder="Describe your issue..."
+        ></textarea>
+
+        <p class="text-sm text-gray-600 mb-4">
+          Ticket Number: <span id="ticket-id" class="font-bold"></span>
+        </p>
+
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancel-complaint"
+            class="px-4 py-2 rounded bg-gray-400 text-white"
+          >
+            Cancel
+          </button>
+          <button
+            id="submit-complaint"
+            class="px-4 py-2 rounded bg-blue-600 text-white"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<script>
-    const complaintModal = document.getElementById("complaint-modal");
-    const raiseComplaintBtn = document.getElementById("raiseComplaintBtn");
-    const cancelComplaintBtn = document.getElementById("cancel-complaint");
-    const submitComplaintBtn = document.getElementById("submit-complaint");
-  
-    raiseComplaintBtn.addEventListener("click", () => {
-      document.getElementById("complaint-title").value = "";
-      document.getElementById("complaint-desc").value = "";
-      document.getElementById("ticket-id").textContent = generateTicketID();
-      complaintModal.classList.remove("hidden");
-    });
-  
-    cancelComplaintBtn.addEventListener("click", () => {
-      complaintModal.classList.add("hidden");
-    });
-  
-    submitComplaintBtn.addEventListener("click", async () => {
-      const title = document.getElementById("complaint-title").value.trim();
-      const desc = document.getElementById("complaint-desc").value.trim();
-      const ticketId = document.getElementById("ticket-id").textContent;
-  
-      if (!title || !desc) {
-        alert("Please fill in all fields.");
-        return;
-      }
-  
-      try {
-        const response = await fetch(`${baseUrl}/api/complaints/raise`, {
+    <script>
+      const complaintModal = document.getElementById("complaint-modal");
+      const raiseComplaintBtn = document.getElementById("raiseComplaintBtn");
+      const cancelComplaintBtn = document.getElementById("cancel-complaint");
+      const submitComplaintBtn = document.getElementById("submit-complaint");
+
+      raiseComplaintBtn.addEventListener("click", () => {
+        document.getElementById("complaint-title").value = "";
+        document.getElementById("complaint-desc").value = "";
+        document.getElementById("ticket-id").textContent = generateTicketID();
+        complaintModal.classList.remove("hidden");
+      });
+
+      cancelComplaintBtn.addEventListener("click", () => {
+        complaintModal.classList.add("hidden");
+      });
+
+      submitComplaintBtn.addEventListener("click", () => {
+        const title = document.getElementById("complaint-title").value.trim();
+        const desc = document.getElementById("complaint-desc").value.trim();
+        const ticketId = document.getElementById("ticket-id").textContent;
+
+        if (!title || !desc) {
+          alert("Please fill in all fields.");
+          return;
+        }
+
+        const complaintData = {
+          ticketId,
+          title,
+          description: desc,
+          createdAt: new Date().toISOString(),
+        };
+
+        console.log("Complaint Submitted:", complaintData);
+
+        // Send complaint to backend
+        fetch(`${baseUrl}/api/complaints/raise`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ title, description: desc, ticketId }),
-        });
-  
-        const data = await response.json();
-  
-        if (response.ok) {
-          alert("Complaint submitted successfully!");
-          complaintModal.classList.add("hidden");
-        } else {
-          alert("Error submitting complaint: " + data.message);
-        }
-      } catch (error) {
-        console.error("Complaint error:", error);
-        alert("Something went wrong. Try again.");
-      }
-    });
-  
-    function generateTicketID() {
-      return "#" + Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
-    }
-  </script>
-  
-  <script>
-    const notifBtn = document.getElementById("notification-btn");
-    const notifDropdown = document.getElementById("notification-dropdown");
-    const notifCount = document.getElementById("notification-count");
-  
-    notifBtn.addEventListener("click", async () => {
-      notifDropdown.classList.toggle("hidden");
-  
-      try {
-        const response = await fetch(`${baseUrl}/api/donor/notifications`, {
-          credentials: "include"
-        });
-        const data = await response.json();
-  
-        if (Array.isArray(data.notifications) && data.notifications.length > 0) {
-          notifCount.textContent = data.notifications.length;
-          notifDropdown.innerHTML = "";
-  
-          data.notifications.forEach((notif) => {
-            const notifEl = document.createElement("div");
-            notifEl.className = "bg-gray-100 p-2 rounded text-black";
-            notifEl.innerHTML = `
-              <p><strong>Receiver:</strong> ${notif.receiver_name}</p>
-              <p><strong>Approved:</strong> ${notif.message}</p>
-              <p><strong>Location:</strong> ${notif.location}</p>
-              <p><strong>Contact:</strong> ${notif.phone}</p>
-            `;
-            notifDropdown.appendChild(notifEl);
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Important: Include cookies for session
+          body: JSON.stringify(complaintData),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              alert(`Complaint submitted! Your ticket number is ${ticketId}`);
+              complaintModal.classList.add("hidden");
+            } else {
+              alert("Failed to submit complaint. Try again.");
+            }
+          })
+          .catch((err) => {
+            console.error("Error submitting complaint:", err);
+            alert("Something went wrong.");
           });
-        } else {
-          notifDropdown.innerHTML = '<p class="text-gray-500">No new notifications.</p>';
-          notifCount.textContent = 0;
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        notifDropdown.innerHTML = '<p class="text-red-500">Failed to load notifications.</p>';
-      }
-    });
-  </script>
-  
+      });
 
+      function generateTicketID() {
+        return (
+          "#" +
+          Math.floor(Math.random() * 1000000)
+            .toString()
+            .padStart(6, "0")
+        );
+      }
+    </script>
   </body>
 </html>

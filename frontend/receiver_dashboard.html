@@ -1,323 +1,643 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Receiver Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .sidebar {
-      width: 250px;
-      background-color: #075261;
-    }
-    .bg-opacity {
-      background-color: rgba(11, 70, 74, 0.6);
-    }
-  </style>
-</head>
-<body class="flex bg-opacity text-white">
-  <!-- Sidebar -->
-  <aside class="sidebar text-white p-5 min-h-screen">
-    <h2 class="text-3xl font-bold">Aahar Link</h2>
-    <p class="text-sm mb-5">Receiver Portal</p>
-    <nav>
-      <ul>
-        <li class="py-2"><a href="#" class="block">🏠 Dashboard</a></li>
-        <li class="py-2"><a href="#" class="block">📦 Requested Items</a></li>
-        <li class="py-2"><a href="#" class="block">⚙️ Settings</a></li>
-        <!-- Logout Button -->
-        <li class="py-52 mt-4"></li>
-        <div class="mt-auto flex justify-center pb-4">
-          <button id="logout-btn" class="bg-blue-500 text-white px-4 py-2 rounded w-32">
-            Logout
-        </button>
-        </div>
-      </ul>
-    </nav>
-  </aside>
-
-  <script>
-    document.getElementById("logout-btn").addEventListener("click", function () {
-      if (confirm("Are you sure you want to log out?")) {
-        console.log("User logged out.");
-        alert("You have been logged out.");
-        window.location.href = "/receiver_login.html";
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Receiver Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .sidebar {
+        width: 250px;
+        background-color: #0b464a;
       }
-    });
-  </script>
-
-  <!-- Main Content -->
-  <main class="flex-1 p-6">
-    <header class="flex justify-between items-center mb-5">
-      <h1 class="text-2xl font-bold">Receiver Dashboard</h1>
-      <div class="flex items-center gap-3">
-        <div class="relative">
-          <button id="notification-btn" class="relative text-red-500 focus:outline-none">
-            🔔
-            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">0</span>
-          </button>
-          <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white text-black rounded shadow-lg z-50 max-h-96 overflow-auto">
-            <ul id="notification-list" class="p-4 space-y-2">
-              <!-- Notifications will be injected here -->
-            </ul>
+      .bg-opacity {
+        background-color: rgba(1, 73, 78, 0.6);
+      }
+      .notification-bell {
+        position: absolute;
+        right: 70px;
+        cursor: pointer;
+        font-size: 24px;
+      }
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 20px;
+        top: 60px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        width: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .notification-item {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+      }
+      .notification-item:hover {
+        background: #e0c1a3;
+      }
+      .notification-item.unread {
+        background: #f6e6d8;
+      }
+      .replies-section {
+        margin-top: 20px;
+        padding: 10px;
+        background: #f6e6d8;
+        border-radius: 8px;
+      }
+      .reply-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+      }
+      .reply-item.agent {
+        background: #e0c1a3;
+      }
+    </style>
+  </head>
+  <body class="flex bg-opacity text-white">
+    <!-- Sidebar -->
+    <aside class="sidebar text-white p-5 min-h-screen">
+      <h2 class="text-3xl font-bold">Aahar Link</h2>
+      <p class="text-sm mb-5">Receiver Portal</p>
+      <nav>
+        <ul>
+          <li class="py-2"><a href="#" class="block">🏠 Dashboard</a></li>
+          <li class="py-2"><a href="#" class="block">📦 Requested Items</a></li>
+          <li class="py-2"><a href="#" class="block">⚙️ Settings</a></li>
+          <!-- Logout Button -->
+          <li class="py-52 mt-4"></li>
+          <div class="mt-auto flex justify-center pb-4">
+            <button
+              id="logout-btn"
+              class="bg-blue-500 text-white px-4 py-2 rounded w-32"
+            >
+              Logout
+            </button>
           </div>
+        </ul>
+      </nav>
+    </aside>
+
+    <script>
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", function () {
+          if (confirm("Are you sure you want to log out?")) {
+            console.log("User logged out.");
+            alert("You have been logged out.");
+            window.location.href = "/receiver_login.html";
+          }
+        });
+    </script>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <header class="flex justify-between items-center mb-5">
+        <h1 class="text-2xl font-bold">Receiver Dashboard</h1>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <button
+              id="notification-btn"
+              class="relative text-red-500 focus:outline-none"
+            >
+              🔔
+              <span
+                id="notification-count"
+                class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full"
+                >0</span
+              >
+            </button>
+            <div
+              id="notification-dropdown"
+              class="hidden absolute right-0 mt-2 w-80 bg-white text-black rounded shadow-lg z-50 max-h-96 overflow-auto"
+            >
+              <ul id="notification-list" class="p-4 space-y-2">
+                <!-- Notifications will be injected here -->
+              </ul>
+            </div>
+          </div>
+
+          <button
+            id="raise-complaint-btn"
+            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
+          >
+            📝 Raise Complaint
+          </button>
+          <span class="bg-[#0B464A] text-white px-3 py-1 rounded-full">R</span>
         </div>
-        
-        <button id="raise-complaint-btn" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-red-700 transition">
-          📝 Raise Complaint
+      </header>
+
+      <!-- Receiver Details Section -->
+      <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
+        <h2 class="text-xl font-bold mb-3">Receiver Details</h2>
+        <p>
+          <strong>Name of NPO:</strong> <span id="npo-name">Loading...</span>
+        </p>
+        <!-- Default address set to "Verify First" -->
+        <p>
+          <strong>Address:</strong> <span id="npo-address">Verify First</span>
+        </p>
+
+        <!-- Verification Button -->
+        <button
+          id="verifyNow"
+          class="w-full mt-3 bg-[#0B464A] text-white py-2 rounded"
+        >
+          Verify Now
         </button>
-        <span class="bg-[#74A57F] text-white px-3 py-1 rounded-full">R</span>
+        <p id="verify-status" class="text-red-500 text-sm mt-2 hidden">
+          ⚠️ Failed to start verification.
+        </p>
       </div>
-    </header>
-    
 
-    <!-- Receiver Details Section -->
-    <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
-      <h2 class="text-xl font-bold mb-3">Receiver Details</h2>
-      <p><strong>Name of NPO:</strong> <span id="npo-name">Loading...</span></p>
-      <!-- Default address set to "Verify First" -->
-      <p><strong>Address:</strong> <span id="npo-address">Verify First</span></p>
-      
-      <!-- Verification Button -->
-      <button id="verifyNow" class="w-full mt-3 bg-blue-500 text-white py-2 rounded">
-        Verify Now
-      </button>
-      <p id="verify-status" class="text-red-500 text-sm mt-2 hidden">⚠️ Failed to start verification.</p>
+      <!-- Available Food Listings -->
+      <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
+        <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
+        <table id="food-listings" class="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th class="border-b p-2">Title</th>
+              <th class="border-b p-2">Type</th>
+              <th class="border-b p-2">Quantity</th>
+              <th class="border-b p-2">Expiry Date</th>
+              <th class="border-b p-2">Restaurant</th>
+              <th class="border-b p-2">Request</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Listings will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Requested Food Section -->
+      <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
+        <h2 class="text-xl font-bold mb-3">Your Requests</h2>
+        <table id="request-list" class="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th class="border-b p-2">Food Item</th>
+              <th class="border-b p-2">Restaurant</th>
+              <th class="border-b p-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Requests will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- Complaint Modal -->
+    <div
+      id="complaint-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50"
+    >
+      <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
+        <h2 class="text-xl font-bold mb-4">Raise a Complaint</h2>
+        <label class="block mb-2">Title</label>
+        <input
+          type="text"
+          id="complaint-title"
+          class="w-full border border-gray-300 rounded p-2 mb-4"
+          placeholder="Enter title..."
+        />
+        <label class="block mb-2">Description</label>
+        <textarea
+          id="complaint-desc"
+          class="w-full border border-gray-300 rounded p-2 mb-4"
+          rows="4"
+          placeholder="Describe your issue..."
+        ></textarea>
+        <p class="text-sm text-gray-600 mb-4">
+          Ticket Number: <span id="ticket-id" class="font-bold"></span>
+        </p>
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancel-complaint"
+            class="px-4 py-2 rounded bg-gray-400 text-white"
+          >
+            Cancel
+          </button>
+          <button
+            id="submit-complaint"
+            class="px-4 py-2 rounded bg-[#0B464A] text-white hover:bg-blue-700"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Available Food Listings -->
-    <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
-      <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
-      <table id="food-listings" class="w-full text-left border-collapse">
-        <thead>
-          <tr>
-            <th class="border-b p-2">Title</th>
-            <th class="border-b p-2">Type</th>
-            <th class="border-b p-2">Quantity</th>
-            <th class="border-b p-2">Expiry Date</th>
-            <th class="border-b p-2">Restaurant</th>
-            <th class="border-b p-2">Request</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Listings will be dynamically inserted here -->
-        </tbody>
-      </table>
-    </div>
+    <!-- Include receiver.js for handling verification and other functions -->
+    <script src="receiver.js"></script>
 
-    <!-- Requested Food Section -->
-    <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
-      <h2 class="text-xl font-bold mb-3">Your Requests</h2>
-      <table id="request-list" class="w-full text-left border-collapse">
-        <thead>
-          <tr>
-            <th class="border-b p-2">Food Item</th>
-            <th class="border-b p-2">Restaurant</th>
-            <th class="border-b p-2">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Requests will be dynamically inserted here -->
-        </tbody>
-      </table>
-    </div>
-  </main>
+    <!-- Other inline scripts for food listings -->
+    <script>
+      // Fetch food listings from a simulated API response
+      function fetchFoodListings() {
+        const listings = [
+          {
+            id: 1,
+            title: "Rice & Curry",
+            type: "Veg",
+            quantity: "5 kg",
+            expiry: "2025-03-15",
+            restaurant: "Green Eats",
+          },
+          {
+            id: 2,
+            title: "Chicken Biryani",
+            type: "Non-Veg",
+            quantity: "3 kg",
+            expiry: "2025-03-16",
+            restaurant: "Tandoori House",
+          },
+        ];
 
-  <!-- Include receiver.js for handling verification and other functions -->
-  <script src="receiver.js"></script>
+        const tableBody = document.querySelector("#food-listings tbody");
+        tableBody.innerHTML = "";
 
-  <!-- Other inline scripts for food listings -->
-  <script>
-    // Fetch food listings from a simulated API response
-    function fetchFoodListings() {
-      const listings = [
-        { id: 1, title: "Rice & Curry", type: "Veg", quantity: "5 kg", expiry: "2025-03-15", restaurant: "Green Eats" },
-        { id: 2, title: "Chicken Biryani", type: "Non-Veg", quantity: "3 kg", expiry: "2025-03-16", restaurant: "Tandoori House" }
-      ];
-
-      const tableBody = document.querySelector("#food-listings tbody");
-      tableBody.innerHTML = "";
-
-      listings.forEach(listing => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
+        listings.forEach((listing) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
           <td class="p-2">${listing.title}</td>
-          <td class="p-2 ${listing.type === 'Veg' ? 'text-green-500' : 'text-red-500'}">${listing.type}</td>
+          <td class="p-2 ${
+            listing.type === "Veg" ? "text-green-500" : "text-red-500"
+          }">${listing.type}</td>
           <td class="p-2">${listing.quantity}</td>
           <td class="p-2">${listing.expiry}</td>
           <td class="p-2">${listing.restaurant}</td>
           <td class="p-2">
-            <button class="bg-blue-500 text-white px-2 py-1 rounded request-btn" data-id="${listing.id}" data-title="${listing.title}" data-restaurant="${listing.restaurant}">Request</button>
+            <button class="bg-blue-500 text-white px-2 py-1 rounded request-btn" data-id="${
+              listing.id
+            }" data-title="${listing.title}" data-restaurant="${
+            listing.restaurant
+          }">Request</button>
           </td>
         `;
-        tableBody.appendChild(row);
-      });
-
-      document.querySelectorAll(".request-btn").forEach(button => {
-        button.addEventListener("click", function () {
-          const foodID = this.dataset.id;
-          const title = this.dataset.title;
-          const restaurant = this.dataset.restaurant;
-          sendFoodRequest(foodID, title, restaurant);
+          tableBody.appendChild(row);
         });
-      });
-    }
 
-    function sendFoodRequest(foodID, title, restaurant) {
-      const requestList = document.querySelector("#request-list tbody");
-      const row = document.createElement("tr");
-      row.innerHTML = `
+        document.querySelectorAll(".request-btn").forEach((button) => {
+          button.addEventListener("click", function () {
+            const foodID = this.dataset.id;
+            const title = this.dataset.title;
+            const restaurant = this.dataset.restaurant;
+            sendFoodRequest(foodID, title, restaurant);
+          });
+        });
+      }
+
+      function sendFoodRequest(foodID, title, restaurant) {
+        const requestList = document.querySelector("#request-list tbody");
+        const row = document.createElement("tr");
+        row.innerHTML = `
         <td class="p-2">${title}</td>
         <td class="p-2">${restaurant}</td>
         <td class="p-2 text-yellow-500">Pending</td>
       `;
-      requestList.appendChild(row);
-      console.log(`Request sent for Food ID: ${foodID}`);
-    }
-
-    // Initialize food listings on page load
-    document.addEventListener("DOMContentLoaded", function () {
-      fetchFoodListings();
-    });
-  </script>
-  
-  <!-- Complaint Modal -->
-<div id="complaint-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
-  <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
-    <h2 class="text-xl font-bold mb-4">Raise a Complaint</h2>
-    
-    <label class="block mb-2">Title</label>
-    <input type="text" id="complaint-title" class="w-full border border-gray-300 rounded p-2 mb-4" placeholder="Enter title..." />
-    
-    <label class="block mb-2">Description</label>
-    <textarea id="complaint-desc" class="w-full border border-gray-300 rounded p-2 mb-4" rows="4" placeholder="Describe your issue..."></textarea>
-
-    <p class="text-sm text-gray-600 mb-4">Ticket Number: <span id="ticket-id" class="font-bold"></span></p>
-
-    <div class="flex justify-end gap-2">
-      <button id="cancel-complaint" class="px-4 py-2 rounded bg-gray-400 text-white">Cancel</button>
-      <button id="submit-complaint" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Submit</button>
-    </div>
-  </div>
-</div>
-<script>
-  const modal = document.getElementById("complaint-modal");
-  const ticketIdSpan = document.getElementById("ticket-id");
-
-  document.getElementById("raise-complaint-btn").addEventListener("click", () => {
-  const ticketNumber = "#" + Math.floor(Math.random() * 90000 + 10000);
-  ticketIdSpan.textContent = ticketNumber;
-
-  // Clear the input fields before showing the modal
-  document.getElementById("complaint-title").value = "";
-  document.getElementById("complaint-desc").value = "";
-
-  modal.classList.remove("hidden");
-});
-
-
-  document.getElementById("cancel-complaint").addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
-
-  document.getElementById("submit-complaint").addEventListener("click", () => {
-    const title = document.getElementById("complaint-title").value.trim();
-    const desc = document.getElementById("complaint-desc").value.trim();
-    const ticketId = ticketIdSpan.textContent;
-
-    if (!title || !desc) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    // Example placeholder for sending to DB
-    const complaintData = {
-      ticketId,
-      title,
-      description: desc,
-      createdAt: new Date().toISOString()
-    };
-
-    console.log("Complaint Submitted:", complaintData);
-
-    // 🔧 Example POST to server API
-    
-    /*fetch("/api/submitComplaint", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(complaintData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert("Complaint submitted successfully!");
-      modal.classList.add("hidden");
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Failed to submit complaint.");
-    });
-    */
-
-    alert(`Complaint submitted! Your ticket number is ${ticketId}`);
-    modal.classList.add("hidden");
-  });
-</script>
-<script>
-  const notificationBtn = document.getElementById("notification-btn");
-  const dropdown = document.getElementById("notification-dropdown");
-  const notificationList = document.getElementById("notification-list");
-  const notificationCount = document.getElementById("notification-count");
-
-  notificationBtn.addEventListener("click", async () => {
-    dropdown.classList.toggle("hidden");
-
-    // Only fetch if dropdown is visible
-    if (!dropdown.classList.contains("hidden")) {
-      try {
-        const response = await fetch('/api/receiver/notifications'); // Update endpoint as needed
-        const notifications = await response.json();
-
-        notificationList.innerHTML = "";
-
-        if (notifications.length === 0) {
-          notificationList.innerHTML = "<li class='text-sm text-gray-500'>No new notifications</li>";
-        } else {
-          notifications.forEach(n => {
-            const li = document.createElement("li");
-            li.className = "bg-gray-100 p-3 rounded shadow text-sm";
-
-            li.innerHTML = `
-              <p><strong>${n.donorName}</strong> has approved your request.</p>
-              <p><strong>Address:</strong> ${n.address}</p>
-              <p><strong>Location:</strong> ${n.location}</p>
-              <p><strong>Phone:</strong> ${n.phone}</p>
-              <p class="text-green-600 font-semibold mt-1">✅ Approved</p>
-            `;
-
-            notificationList.appendChild(li);
-          });
-        }
-
-        // Update count
-        notificationCount.textContent = notifications.length;
-
-      } catch (err) {
-        console.error("Error fetching notifications:", err);
-        notificationList.innerHTML = "<li class='text-sm text-red-500'>Failed to load notifications</li>";
+        requestList.appendChild(row);
+        console.log(`Request sent for Food ID: ${foodID}`);
       }
-    }
-  });
 
-  // Optional: Close dropdown when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!notificationBtn.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.classList.add("hidden");
-    }
-  });
-</script>
+      // Initialize food listings on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchFoodListings();
+      });
+    </script>
 
-</body>
+    <!-- Common variables -->
+    <script>
+      // Define baseUrl at the top level to be used by all scripts
+      const baseUrl = window.location.origin;
+    </script>
+
+    <!-- Complaint Modal Logic-->
+    <script>
+      // Get complaint modal elements
+      const complaintModal = document.getElementById("complaint-modal");
+      const raiseComplaintBtn = document.getElementById("raise-complaint-btn");
+      const cancelComplaintBtn = document.getElementById("cancel-complaint");
+      const submitComplaintBtn = document.getElementById("submit-complaint");
+      const ticketIdSpan = document.getElementById("ticket-id");
+
+      // Function to generate random ticket number
+      function generateTicketNumber() {
+        return "#" + Math.floor(Math.random() * 90000 + 10000);
+      }
+
+      // Function to reset and open complaint modal
+      function openComplaintModal() {
+        const ticketNumber = generateTicketNumber();
+        ticketIdSpan.textContent = ticketNumber;
+        document.getElementById("complaint-title").value = "";
+        document.getElementById("complaint-desc").value = "";
+        complaintModal.classList.remove("hidden");
+      }
+
+      // Function to close complaint modal
+      function closeComplaintModal() {
+        complaintModal.classList.add("hidden");
+      }
+
+      // Event Listeners
+      if (raiseComplaintBtn) {
+        raiseComplaintBtn.addEventListener("click", openComplaintModal);
+      }
+
+      if (cancelComplaintBtn) {
+        cancelComplaintBtn.addEventListener("click", closeComplaintModal);
+      }
+
+      if (submitComplaintBtn) {
+        submitComplaintBtn.addEventListener("click", async () => {
+          const title = document.getElementById("complaint-title").value.trim();
+          const desc = document.getElementById("complaint-desc").value.trim();
+          const ticketId = ticketIdSpan.textContent;
+
+          if (!title || !desc) {
+            alert("Please fill in all fields.");
+            return;
+          }
+
+          const complaintData = {
+            ticketId,
+            title,
+            description: desc,
+            createdAt: new Date().toISOString(),
+          };
+
+          try {
+            const response = await fetch(`${baseUrl}/api/complaints/raise`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(complaintData),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+              alert(`Complaint submitted! Your ticket number is ${ticketId}`);
+              closeComplaintModal();
+              // Refresh notifications to show the new complaint
+              if (typeof loadNotifications === "function") {
+                loadNotifications();
+              }
+            } else {
+              alert(
+                "Failed to submit complaint: " +
+                  (data.message || "Please try again.")
+              );
+            }
+          } catch (err) {
+            console.error("Error submitting complaint:", err);
+            alert("Something went wrong. Please try again.");
+          }
+        });
+      }
+    </script>
+
+    <!-- Notification handling script -->
+    <script>
+      // Get notification elements
+      const notificationBtn = document.getElementById("notification-btn");
+      const dropdown = document.getElementById("notification-dropdown");
+      const notificationList = document.getElementById("notification-list");
+      const notificationCount = document.getElementById("notification-count");
+
+      // Function to handle notification click
+      async function handleNotificationClick(notificationId, ticketId) {
+        try {
+          // Mark as read
+          await fetch(
+            `${baseUrl}/api/complaints/notifications/${notificationId}/read`,
+            {
+              method: "PUT",
+              credentials: "include",
+            }
+          );
+
+          // Get all complaints and filter
+          const res = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: "include",
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            const ticket = data.complaints.find((t) => t.ticketId === ticketId);
+            if (ticket) {
+              dropdown.classList.add("hidden"); // Hide dropdown before opening modal
+              showComplaintModal(ticket);
+              loadNotifications(); // Refresh
+            }
+          }
+        } catch (error) {
+          console.error("Error handling notification click:", error);
+        }
+      }
+
+      // Function to show complaint details modal
+      function showComplaintModal(ticket) {
+        const modal = document.createElement("div");
+        modal.className =
+          "modal-ticket-reply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4";
+        modal.innerHTML = `
+          <div class="bg-white text-black rounded-lg shadow-lg w-full max-w-md max-h-[90vh] flex flex-col">
+            <div class="p-6 flex-none border-b">
+              <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold">Ticket #${ticket.ticketId}</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
+              </div>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+              <p class="mb-2"><strong>Status:</strong> ${ticket.status}</p>
+              <p class="mb-2"><strong>Title:</strong> ${ticket.title}</p>
+              <p class="mb-4"><strong>Description:</strong> ${
+                ticket.description
+              }</p>
+              <div class="replies-section">
+                <h4 class="font-bold mb-2">Replies:</h4>
+                ${ticket.replies
+                  .map(
+                    (reply) => `
+                  <div class="reply-item ${
+                    reply.sender === "agent" ? "agent" : ""
+                  } mb-2">
+                    <p><strong>${
+                      reply.sender === "agent" ? "Customer Support" : "You"
+                    }:</strong></p>
+                    <p>${reply.message}</p>
+                    <small>${new Date(reply.timestamp).toLocaleString()}</small>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+            ${
+              ticket.status === "Open"
+                ? `
+              <div class="p-6 flex-none border-t">
+                <h4 class="font-bold mb-2">Reply:</h4>
+                <textarea id="reply-text" rows="4" class="w-full border rounded p-2 mb-2" placeholder="Type your reply here..."></textarea>
+                <button onclick="submitReply('${ticket._id}')" class="bg-[#0B464A] text-white px-4 py-2 rounded">Submit Reply</button>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+
+      // Function to submit reply
+      async function submitReply(ticketId) {
+        const replyText = document.getElementById("reply-text").value;
+        if (!replyText) return;
+
+        try {
+          // First check if the complaint is still open
+          const checkRes = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: "include",
+          });
+          const checkData = await checkRes.json();
+
+          if (checkData.success) {
+            const ticket = checkData.complaints.find((t) => t._id === ticketId);
+            if (!ticket || ticket.status !== "Open") {
+              alert("Cannot reply to a resolved complaint");
+              return;
+            }
+
+            const res = await fetch(
+              `${baseUrl}/api/complaints/update/${ticketId}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  reply: replyText,
+                  sender: "user", // Always send as user
+                }),
+              }
+            );
+
+            const data = await res.json();
+            if (data.success) {
+              alert("Reply submitted successfully");
+              // Remove the modal
+              const modal = document.querySelector(".modal-ticket-reply");
+              if (modal) {
+                modal.remove();
+              }
+              // Refresh notifications
+              loadNotifications();
+            } else {
+              alert(
+                "Failed to submit reply: " + (data.message || "Unknown error")
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error submitting reply:", error);
+          alert("Failed to submit reply. Please try again.");
+        }
+      }
+
+      // Function to load notifications
+      async function loadNotifications() {
+        try {
+          console.log("Loading notifications...");
+          const response = await fetch(
+            `${baseUrl}/api/complaints/notifications`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("Notifications response:", data);
+          const notifications = data.notifications || [];
+
+          notificationList.innerHTML = "";
+
+          if (notifications.length === 0) {
+            notificationList.innerHTML =
+              "<li class='text-sm text-gray-500'>No new notifications</li>";
+          } else {
+            notifications.forEach((n) => {
+              const li = document.createElement("li");
+              li.className =
+                "notification-item cursor-pointer hover:bg-[#E0C1A3] p-3 rounded mb-2";
+              li.onclick = () => handleNotificationClick(n._id, n.ticketId);
+
+              li.innerHTML = `
+                <div>
+                  <p class="text-red-500">${n.message}</p>
+                  <small class="text-red-500">${new Date(
+                    n.timestamp
+                  ).toLocaleString()}</small>
+                </div>
+              `;
+
+              notificationList.appendChild(li);
+            });
+          }
+
+          // Update count
+          notificationCount.textContent = notifications.filter(
+            (n) => !n.read
+          ).length;
+        } catch (err) {
+          console.error("Error loading notifications:", err);
+          notificationList.innerHTML =
+            "<li class='text-sm text-red-500'>Failed to load notifications</li>";
+        }
+      }
+
+      // Attach click handler for notification bell
+      notificationBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        dropdown.classList.toggle("hidden");
+        if (!dropdown.classList.contains("hidden")) {
+          loadNotifications(); // Refresh notifications when dropdown is opened
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (
+          !notificationBtn.contains(e.target) &&
+          !dropdown.contains(e.target)
+        ) {
+          dropdown.classList.add("hidden");
+        }
+      });
+
+      // Initial load of notifications
+      document.addEventListener("DOMContentLoaded", () => {
+        loadNotifications();
+        // Periodically refresh notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+      });
+    </script>
+  </body>
 </html>
-
-
-

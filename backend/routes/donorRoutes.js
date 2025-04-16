@@ -23,6 +23,7 @@ router.post("/signup", async (req, res) => {
         const newDonor = await Donor.create({ companyname, email, password: hashedPassword });
 
         req.session.Donor = { id: newDonor._id, email, companyname };
+        console.log("Session after login:", req.session);
 
         res.status(201).json({
             success: true,
@@ -58,7 +59,7 @@ router.post("/login", async (req, res) => {
         }
 
         req.session.Donor = { id: donor._id, email: donor.email, companyname: donor.companyname };
-
+        console.log("Session after login:", req.session);
         res.status(200).json({
             success: true,
             redirect: "/donor_dashboard.html",

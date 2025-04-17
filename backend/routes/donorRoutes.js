@@ -151,6 +151,7 @@ router.get("/donations", async (req, res) => {
 
     try {
         const donations = await Donation.find({ donorId: req.session.Donor.id })
+            .populate('receiverId', 'nponame')
             .sort({ createdAt: -1 });
 
         res.json({

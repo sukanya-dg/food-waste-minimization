@@ -1,54 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>rating</title>
-    <link rel="stylesheet" href="rating.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-</head>
-<body>
+    <link rel="stylesheet" href="rating.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+  </head>
+  <body>
     <div class="container">
-        <div class="post">
-            <div class="text">Thanks for rating us!</div>
-            <div class="edit">EDIT</div>
-        </div>
-        <div class="star-widget">
-            <input type="radio" name="rate" id="rate-5">
-            <label for="rate-5" class="fas fa-star"></label>
-            <input type="radio" name="rate" id="rate-4">
-            <label for="rate-4" class="fas fa-star"></label>
-            <input type="radio" name="rate" id="rate-3">
-            <label for="rate-3" class="fas fa-star"></label>
-            <input type="radio" name="rate" id="rate-2">
-            <label for="rate-2" class="fas fa-star"></label>
-            <input type="radio" name="rate" id="rate-1">
-            <label for="rate-1" class="fas fa-star"></label>
-            <form action="#">
-                <header></header>
-                <div class="textarea">
-                    <textarea cols="30" placeholder="Describe your experience..."></textarea>
-                </div>
-                <div class="btn">
-                    <button type="submit">Post</button>
-                </div>
-            </form>
-        </div>
+      <div class="post">
+        <div class="text">Thanks for rating us!</div>
+        <div class="edit">EDIT</div>
+      </div>
+      <div class="star-widget">
+        <input type="radio" name="rate" id="rate-5" />
+        <label for="rate-5" class="fas fa-star"></label>
+        <input type="radio" name="rate" id="rate-4" />
+        <label for="rate-4" class="fas fa-star"></label>
+        <input type="radio" name="rate" id="rate-3" />
+        <label for="rate-3" class="fas fa-star"></label>
+        <input type="radio" name="rate" id="rate-2" />
+        <label for="rate-2" class="fas fa-star"></label>
+        <input type="radio" name="rate" id="rate-1" />
+        <label for="rate-1" class="fas fa-star"></label>
+        <form id="rating-form">
+          <header></header>
+          <div class="textarea">
+            <textarea
+              id="comment"
+              cols="30"
+              placeholder="Describe your experience..."
+            ></textarea>
+          </div>
+          <div class="btn">
+            <button type="submit">Post</button>
+          </div>
+        </form>
+      </div>
     </div>
     <script>
-    const btn = document.querySelector("button");
-      const post = document.querySelector(".post");
-      const widget = document.querySelector(".star-widget");
-      const editBtn = document.querySelector(".edit");
-      btn.onclick = ()=>{
-        widget.style.display = "none";
-        post.style.display = "block";
-        editBtn.onclick = ()=>{
+      document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const donationId = urlParams.get("donationId");
+
+        if (!donationId) {
+          alert("Invalid donation ID");
+          window.location.href = "/receiver_dashboard.html";
+          return;
+        }
+
+        const btn = document.querySelector("button");
+        const post = document.querySelector(".post");
+        const widget = document.querySelector(".star-widget");
+        const editBtn = document.querySelector(".edit");
+        const ratingForm = document.getElementById("rating-form");
+        const starInputs = document.querySelectorAll('input[name="rate"]');
+        const commentTextarea = document.getElementById("comment");
+
+        let selectedRating = 0;
+
+        // Handle star selection
+        starInputs.forEach((input) => {
+          input.addEventListener("change", function () {
+            selectedRating = parseInt(this.id.split("-")[1]);
+          });
+        });
+
+        // Handle form submission
+        ratingForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          if (selectedRating === 0) {
+            alert("Please select a rating");
+            return;
+          }
+
+          try {
+            const response = await fetch(
+              `/api/donations/${donationId}/review`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  rating: selectedRating,
+                  comment: commentTextarea.value,
+                }),
+              }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.message || "Failed to submit rating");
+            }
+
+            // Show success message
+            widget.style.display = "none";
+            post.style.display = "block";
+
+            // Redirect after 2 seconds
+            setTimeout(() => {
+              window.location.href = "/receiver_dashboard.html";
+            }, 2000);
+          } catch (error) {
+            console.error("Error submitting rating:", error);
+            alert(
+              error.message || "Failed to submit rating. Please try again."
+            );
+          }
+        });
+
+        // Handle edit button
+        editBtn.onclick = () => {
           widget.style.display = "block";
           post.style.display = "none";
-        }
-        return false;
-      }
+        };
+      });
     </script>
-</body>
+  </body>
 </html>

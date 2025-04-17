@@ -199,9 +199,9 @@
         </form>
       </div>
 
-      <!-- Active Food Listings Table -->
+      <!-- Available Food Listings -->
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
-        <h2 class="text-xl font-bold mb-3">Active Food Listings</h2>
+        <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
         <table id="food-listings" class="w-full text-left border-collapse">
           <thead>
             <tr>
@@ -210,10 +210,12 @@
               <th class="border-b p-2">Quantity</th>
               <th class="border-b p-2">Expiry Date</th>
               <th class="border-b p-2">Status</th>
+              <th class="border-b p-2">Requested By</th>
+              <th class="border-b p-2">Action</th>
             </tr>
           </thead>
           <tbody>
-            <!-- New listings will be added here dynamically -->
+            <!-- Listings will be dynamically inserted here -->
           </tbody>
         </table>
       </div>
@@ -252,92 +254,262 @@
       // Initialize total food saved (if needed)
       let totalFoodSaved = 0;
 
-      // Handle Add Listing form submission
-      document.getElementById("food-form").addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        // Get input values
-        const title = document.getElementById("food-title").value.trim();
-        const type = document.getElementById("food-type").value;
-        const quantity = document.getElementById("food-quantity").value.trim();
-        const expiry = document.getElementById("food-expiry").value;
-        const status = document.getElementById("food-status").value;
-
-        if (!title || !quantity || !expiry) {
-          alert("Please fill in all fields!");
-          return;
-        }
-
+      // Function to fetch and display donation requests
+      async function fetchDonationRequests() {
         try {
-          const response = await fetch(`${baseUrl}/api/donor/donations`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              title,
-              type,
-              quantity,
-              expiryDate: expiry,
-              status
-            })
+          const response = await fetch("/api/donations/requests", {
+            credentials: "include",
+          });
+          const requests = await response.json();
+
+          const requestsList = document.getElementById("requests-list");
+          requestsList.innerHTML = "";
+
+          requests.forEach((request) => {
+            const requestElement = document.createElement("div");
+            requestElement.className = "border-b p-4";
+            requestElement.innerHTML = `
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-bold">${request.title}</p>
+                  <p class="text-sm text-gray-600">Requested by: ${
+                    request.receiverId.nponame
+                  }</p>
+                  <p class="text-sm text-gray-600">Status: ${request.status}</p>
+                </div>
+                <div class="mt-2">
+                  ${
+                    request.status === "Claimed"
+                      ? `
+                    <button class="bg-green-500 text-white px-4 py-2 rounded donate-btn" 
+                      data-id="${request._id}" 
+                      data-receiver="${request.receiverId._id}">
+                      Donate
+                    </button>
+                  `
+                      : ""
+                  }
+                </div>
+              </div>
+            `;
+            requestsList.appendChild(requestElement);
           });
 
-          const data = await response.json();
+          // Add event listeners to donate buttons
+          document.querySelectorAll(".donate-btn").forEach((btn) => {
+            btn.addEventListener("click", async function () {
+              const donationId = this.dataset.id;
+              const receiverId = this.dataset.receiver;
 
-          if (data.success) {
-            addListingToTable(data.donation);
-            document.getElementById("food-form").reset();
-          } else {
-            alert(data.message || 'Failed to add donation');
-          }
+              try {
+                const response = await fetch(
+                  `/api/donations/donate/${donationId}`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      receiverId: receiverId,
+                      status: "Confirmed",
+                    }),
+                  }
+                );
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(
+                    errorData.message || "Failed to approve donation"
+                  );
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                  alert("Donation confirmed successfully!");
+                  // Refresh both the listings and requests
+                  await Promise.all([
+                    loadExistingDonations(),
+                    fetchDonationRequests()
+                  ]);
+                } else {
+                  throw new Error(data.message || "Failed to confirm donation");
+                }
+              } catch (error) {
+                console.error("Error confirming donation:", error);
+                alert(
+                  error.message || "Failed to confirm donation. Please try again."
+                );
+              }
+            });
+          });
         } catch (error) {
-          console.error('Error:', error);
-          alert('Failed to add donation. Please try again.');
+          console.error("Error fetching requests:", error);
         }
-      });
+      }
+
+      // Handle Add Listing form submission
+      document
+        .getElementById("food-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          // Get input values
+          const title = document.getElementById("food-title").value.trim();
+          const type = document.getElementById("food-type").value;
+          const quantity = document
+            .getElementById("food-quantity")
+            .value.trim();
+          const expiry = document.getElementById("food-expiry").value;
+          const status = document.getElementById("food-status").value;
+
+          if (!title || !quantity || !expiry) {
+            alert("Please fill in all fields!");
+            return;
+          }
+
+          try {
+            const response = await fetch(`${baseUrl}/api/donor/donations`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                title,
+                type,
+                quantity,
+                expiryDate: expiry,
+                status,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              addListingToTable(data.donation);
+              document.getElementById("food-form").reset();
+            } else {
+              alert(data.message || "Failed to add donation");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Failed to add donation. Please try again.");
+          }
+        });
 
       function addListingToTable(donation) {
         const tableBody = document.querySelector("#food-listings tbody");
-        const foodSymbol = donation.type === "veg" 
-          ? '<span class="text-green-500 text-lg">●</span> Veg'
-          : '<span class="text-red-500 text-lg">●</span> Non-Veg';
-        
+        const foodSymbol =
+          donation.type === "veg"
+            ? '<span class="text-green-500 text-lg">●</span> Veg'
+            : '<span class="text-red-500 text-lg">●</span> Non-Veg';
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td class="p-2">${donation.title}</td>
           <td class="p-2 flex items-center gap-2">${foodSymbol}</td>
           <td class="p-2">${donation.quantity}</td>
-          <td class="p-2">${new Date(donation.expiryDate).toLocaleDateString()}</td>
-          <td class="p-2 text-green-500">${donation.status}</td>
+          <td class="p-2">${new Date(
+            donation.expiryDate
+          ).toLocaleDateString()}</td>
+          <td class="p-2 ${
+            donation.status === 'Active' ? 'text-green-500' : 
+            donation.status === 'Expired' ? 'text-red-500' :
+            donation.status === 'Claimed' ? 'text-yellow-500' :
+            donation.status === 'Confirmed' ? 'text-green-500' : 'text-gray-500'
+          }">${donation.status}</td>
+          <td class="p-2">${donation.receiverId?.nponame || '-'}</td>
           <td class="p-2">
-            <button class="bg-red-500 text-white px-2 py-1 rounded remove-btn">Remove</button>
+            ${
+              donation.status === 'Claimed'
+                ? `
+              <button class="bg-green-500 text-white px-2 py-1 rounded donate-btn" 
+                data-id="${donation._id}"
+                data-receiver="${donation.receiverId?._id}">
+                Donate
+              </button>
+            `
+                : ''
+            }
           </td>
         `;
         tableBody.appendChild(row);
+
+        // Add event listener to donate button if it exists
+        const donateBtn = row.querySelector(".donate-btn");
+        if (donateBtn) {
+          donateBtn.addEventListener("click", async function () {
+            const donationId = this.dataset.id;
+            const receiverId = this.dataset.receiver;
+
+            try {
+              const response = await fetch(
+                `/api/donations/donate/${donationId}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    receiverId: receiverId,
+                    status: "Confirmed",
+                  }),
+                }
+              );
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                  errorData.message || "Failed to confirm donation"
+                );
+              }
+
+              const data = await response.json();
+              if (data.success) {
+                alert("Donation confirmed successfully!");
+                // Refresh both the listings and requests
+                await Promise.all([
+                  loadExistingDonations(),
+                  fetchDonationRequests()
+                ]);
+              } else {
+                throw new Error(data.message || "Failed to confirm donation");
+              }
+            } catch (error) {
+              console.error("Error confirming donation:", error);
+              alert(
+                error.message || "Failed to confirm donation. Please try again."
+              );
+            }
+          });
+        }
       }
 
       // Add this function to load existing donations when the page loads
       async function loadExistingDonations() {
         try {
           const response = await fetch(`${baseUrl}/api/donor/donations`, {
-            credentials: 'include'
+            credentials: "include",
           });
           const data = await response.json();
 
           if (data.success) {
             const tableBody = document.querySelector("#food-listings tbody");
-            tableBody.innerHTML = ''; // Clear existing entries
-            data.donations.forEach(donation => addListingToTable(donation));
+            tableBody.innerHTML = ""; // Clear existing entries
+            
+            // Filter out collected donations
+            const activeDonations = data.donations.filter(donation => 
+              donation.status !== 'Collected'
+            );
+            
+            activeDonations.forEach((donation) => addListingToTable(donation));
           }
         } catch (error) {
-          console.error('Error loading donations:', error);
+          console.error("Error loading donations:", error);
         }
       }
-
-      // Call this when the page loads
-      document.addEventListener('DOMContentLoaded', function() {
+      // Initialize the dashboard
+      document.addEventListener("DOMContentLoaded", function () {
         loadExistingDonations();
       });
     </script>
@@ -627,6 +799,12 @@
               .value.trim();
             if (!licenseNo) {
               alert("Please enter your License/Registration No.");
+              return;
+            }
+
+            // Add validation for license number length
+            if (licenseNo.length < 14) {
+              alert("Check your License, Invalid License/Registration No.");
               return;
             }
 

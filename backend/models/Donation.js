@@ -6,6 +6,11 @@ const donationSchema = new mongoose.Schema({
         ref: 'Donor',
         required: true
     },
+    receiverId: {
+        type: String,
+        ref: 'Receiver',
+        default: null
+    },
     title: {
         type: String,
         required: true
@@ -25,8 +30,17 @@ const donationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Active', 'Expired', 'Claimed'],
+        enum: ['Active', 'Expired', 'Claimed', 'Confirmed', 'Collected'],
         default: 'Active'
+    },
+    review: {
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5
+        },
+        comment: String,
+        createdAt: Date
     },
     createdAt: {
         type: Date,

@@ -42,6 +42,7 @@ router.post("/signup", async (req, res) => {
 
     res.status(201).json({
       success: true,
+      id: newReceiver._id.toString(),
       nponame,
       redirect: "/receiver_dashboard.html"
     });
@@ -86,6 +87,7 @@ router.post("/login", async (req, res) => {
       }
       res.json({
         success: true,
+        id: receiver._id.toString(),
         nponame: receiver.nponame,
         redirect: "/receiver_dashboard.html",
         sessionID: req.sessionID
@@ -156,9 +158,11 @@ router.post("/details", async (req, res) => {
 
     res.json({
       success: true,
+      _id: receiver._id,
       nponame: receiver.nponame,
       verified: receiver.verified,
-      address: receiver.verified ? receiver.address : "Verify First"
+      address: receiver.verified ? receiver.address : "Verify First",
+      regno: receiver.regno
     });
   } catch (error) {
     console.error("Error fetching details:", error);

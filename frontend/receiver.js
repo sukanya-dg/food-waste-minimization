@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const data = await response.json();
         if (data.success) {
+          localStorage.setItem("receiverId", data._id); // ✅ Add this line
           localStorage.setItem("receivernponame", data.nponame);
           window.location.href = data.redirect;
         } else {
@@ -70,16 +71,43 @@ document.addEventListener("DOMContentLoaded", async () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
+          credentials: "include"
         });
 
         const data = await response.json();
+        console.log("Login response:", data); // Debug log
+
         if (data.success) {
+          // Store receiver ID and name in localStorage
+          localStorage.setItem("receiverId", data.id);
           localStorage.setItem("receivernponame", data.nponame);
+
+          // Clear any existing error messages
+          const errorMessage = document.querySelector(".error-message");
+          if (errorMessage) {
+            errorMessage.remove();
+          }
+
+          // Redirect to dashboard
           window.location.href = data.redirect;
         } else {
-          alert(data.message);
+          // Show error message
+          const errorMessage = document.createElement("div");
+          errorMessage.className = "error-message text-red-500 mt-2";
+          errorMessage.textContent = data.message || "Login failed. Please try again.";
+
+          // Remove any existing error message
+          const existingError = document.querySelector(".error-message");
+          if (existingError) {
+            existingError.remove();
+          }
+
+          // Add new error message after the login button
+          const loginButton = loginForm.querySelector("button[type='submit']");
+          loginButton.parentNode.insertBefore(errorMessage, loginButton.nextSibling);
         }
-      } catch {
+      } catch (error) {
+        console.error("Login error:", error);
         alert("An error occurred while logging in. Please try again.");
       }
     });
@@ -163,4 +191,65 @@ document.addEventListener("DOMContentLoaded", async () => {
       verifyBtn.disabled = false;
     }
   });
+
+  // Initialize the dashboard
+  if (document.querySelector("#request-list")) {
+    fetchReceiverRequests();
+    // Refresh requests periodically
+    setInterval(fetchReceiverRequests, 30000); // Every 30 seconds
+  }
 });
+
+// Add this function to fetch receiver requests
+async function fetchReceiverRequests() {
+  try {
+    const receiverId = localStorage.getItem("receiverId");
+    if (!receiverId) {
+      console.error("No receiver ID found");
+      return;
+    }
+
+    const response = await fetch(`${baseUrl}/api/donations/receiver-requests?receiverId=${receiverId}`, {
+      credentials: 'include'
+    });
+    const requests = await response.json();
+
+    const requestList = document.querySelector("#request-list tbody");
+    if (!requestList) return;
+
+    requestList.innerHTML = "";
+
+    requests.forEach(request => {
+      const row = document.createElement("tr");
+      const statusColor = request.status === 'Pending'
+        ? 'text-yellow-500'
+        : request.status === 'Confirmed'
+          ? 'text-green-500'
+          : 'text-gray-500';
+
+      row.innerHTML = `
+        <td class="p-2">${request.title}</td>
+        <td class="p-2">${request.donorId ? request.donorId.name : 'Unknown Restaurant'}</td>
+        <td class="p-2 ${statusColor}">${request.status}</td>
+        <td class="p-2">
+          ${request.status === 'Confirmed' ? `
+            <button class="bg-green-500 text-white px-2 py-1 rounded collect-btn" 
+              data-id="${request._id}">
+              Collect
+            </button>
+          ` : ''}
+        </td>
+      `;
+      requestList.appendChild(row);
+    });
+
+    // Add event listeners to collect buttons
+    document.querySelectorAll('.collect-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        markAsCollected(this.dataset.id);
+      });
+    });
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+  }
+}

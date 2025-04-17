@@ -17,6 +17,8 @@ const receiverRoutes = require("./routes/receiverRoutes");
 const donorRoutes = require("./routes/donorRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const complaintRoutes = require('./routes/complaintRoutes');
+const donationRoutes = require("./routes/donationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // ✅ Initialize Express
 const app = express();
@@ -69,6 +71,8 @@ app.use("/api/receiver", receiverRoutes);
 app.use("/api/donor", donorRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/api/donations", donationRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ✅ Server Homepage
 app.get("/", (req, res) => {

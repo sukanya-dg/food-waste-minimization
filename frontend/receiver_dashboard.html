@@ -237,10 +237,8 @@
       <nav>
         <ul>
           <li class="py-2"><a href="#" class="block">🏠 Dashboard</a></li>
-          <li class="py-2"><a href="#" class="block">📦 Requested Items</a></li>
-          <li class="py-2"><a href="#" class="block">⚙️ Settings</a></li>
           <!-- Logout Button -->
-          <li class="py-52 mt-4"></li>
+          <li class="py-96 mt-4"></li>
           <div class="mt-auto flex justify-center pb-4">
             <button
               id="logout-btn"
@@ -309,13 +307,20 @@
           <strong>Address:</strong> <span id="npo-address">Verify First</span>
         </p>
 
-        <!-- Verification Button -->
+        <!-- Add verification warning message -->
+        <div id="unverified-message" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+          <p class="font-bold">Verification Required</p>
+          <p>Please verify your account to request food donations. Click the "Verify Now" button above to proceed.</p>
+        </div>
+
+        <!-- Add verification button -->
         <button
           id="verifyNow"
-          class="w-full mt-3 bg-[#0B464A] text-white py-2 rounded"
+          class="w-full mt-3 mb-4 bg-[#74A57F] text-white py-2 rounded"
         >
           Verify Now
         </button>
+        <p id="verificationStatus" class="text-red-500 text-sm mt-2"></p>
       </div>
 
       <!-- Available Food Listings -->
@@ -430,6 +435,18 @@
             return;
           }
 
+          // Get verification status
+          const verificationResponse = await fetch(`${baseUrl}/api/receiver/details`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ nponame: localStorage.getItem("receivernponame") }),
+            credentials: "include",
+          });
+          const verificationData = await verificationResponse.json();
+          const isVerified = verificationData.verified;
+
           listings.forEach((listing) => {
             const donorName =
               listing.donorId?.companyname ||
@@ -464,8 +481,9 @@
                 listing.status === "Active"
                   ? `
                 <button 
-                  class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                  class="bg-blue-500 text-white px-3 py-1 rounded ${!isVerified ? 'opacity-50 cursor-not-allowed' : ''}"
                   onclick="sendFoodRequest('${listing._id}')"
+                  ${!isVerified ? 'disabled' : ''}
                 >
                   Request
                 </button>
@@ -476,6 +494,12 @@
         `;
             tableBody.appendChild(row);
           });
+
+          // Show/hide verification warning message
+          const unverifiedMessage = document.getElementById('unverified-message');
+          if (unverifiedMessage) {
+            unverifiedMessage.classList.toggle('hidden', isVerified);
+          }
         } catch (error) {
           console.error("Error fetching listings:", error);
           const tableBody = document.querySelector("#food-listings tbody");
@@ -620,6 +644,23 @@
       // Function to send food request
       async function sendFoodRequest(donationId) {
         try {
+          // Check verification status first
+          const verificationResponse = await fetch(`${baseUrl}/api/receiver/details`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ nponame: localStorage.getItem("receivernponame") }),
+            credentials: "include",
+          });
+
+          const verificationData = await verificationResponse.json();
+          
+          if (!verificationData.verified) {
+            alert("Please verify your account before requesting food donations.");
+            return;
+          }
+
           // Get receiver ID from localStorage
           let receiverId = localStorage.getItem("receiverId");
           console.log("Current receiverId from localStorage:", receiverId); // Debug log
@@ -870,14 +911,14 @@
           if (isVerified) {
             verifyBtn.innerText = "Verified ✅";
             verifyBtn.disabled = true;
-            verifyBtn.classList.add("bg-[#0B464A]");
+            verifyBtn.classList.add("bg-[#74A57F]");
           } else {
             verifyBtn.innerText = "Verify Now";
             verifyBtn.disabled = false;
-            verifyBtn.classList.remove("bg-[#0B464A]");
+            verifyBtn.classList.remove("bg-[#74A57F]");
             verifyBtn.classList.add(
-              "bg-[#0B464A]",
-              "hover:bg-[#0B464A]/90",
+              "bg-[#74A57F]",
+              "hover:bg-[#5d8a67]",
               "text-white",
               "px-4",
               "py-2",
@@ -992,7 +1033,7 @@
               // Update the UI to show verified status
               this.innerText = "Verified ✅";
               this.disabled = true;
-              this.classList.add("bg-[#0B464A]");
+              this.classList.add("bg-[#74A57F]");
 
               // Update address if provided
               if (verifyData.address) {

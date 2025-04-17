@@ -68,16 +68,9 @@
       <nav>
         <ul>
           <li class="py-2"><a href="#" class="block">🏠 Dashboard</a></li>
-          <li class="py-2">
-            <a href="#" class="block">➕ Add New Food Listing</a>
-          </li>
-          <li class="py-2">
-            <a href="#" class="block">📦 Active Food Listings</a>
-          </li>
-          <li class="py-2"><a href="#" class="block">⭐ Reviews</a></li>
-          <li class="py-2"><a href="#" class="block">⚙️ Settings</a></li>
+          <li class="py-2"><a href="#" class="block" id="reviews-link">⭐ Reviews</a></li>
           <!-- Logout Button -->
-          <li class="py-52 mt-4"></li>
+          <li class="py-96 mt-4"></li>
           <div class="mt-auto flex justify-center pb-4">
             <button
               id="logout-btn"
@@ -168,14 +161,19 @@
       <!-- Add New Food Listing Form -->
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Add New Food Listing</h2>
+        <div id="unverified-message" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+          <p class="font-bold">Verification Required</p>
+          <p>Please verify your account to add food listings. Click the "Verify Now" button above to proceed.</p>
+        </div>
         <form id="food-form" class="grid grid-cols-2 gap-4">
           <input
             type="text"
             id="food-title"
             placeholder="Food Title"
             class="p-2 border rounded"
+            disabled
           />
-          <select id="food-type" class="p-2 border rounded">
+          <select id="food-type" class="p-2 border rounded" disabled>
             <option value="veg">Veg</option>
             <option value="nonveg">Non-Veg</option>
           </select>
@@ -184,15 +182,17 @@
             id="food-quantity"
             placeholder="Quantity (e.g., 2 kg)"
             class="p-2 border rounded"
+            disabled
           />
-          <input type="date" id="food-expiry" class="p-2 border rounded" />
-          <select id="food-status" class="p-2 border rounded">
+          <input type="date" id="food-expiry" class="p-2 border rounded" disabled />
+          <select id="food-status" class="p-2 border rounded" disabled>
             <option value="Active">Active</option>
             <option value="Expired">Expired</option>
           </select>
           <button
             type="submit"
-            class="col-span-2 bg-[#74A57F] text-white px-4 py-2 rounded"
+            class="col-span-2 bg-[#74A57F] text-white px-4 py-2 rounded opacity-50 cursor-not-allowed"
+            disabled
           >
             Add Listing
           </button>
@@ -246,6 +246,43 @@
           >
             Submit
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Popup Modal -->
+    <div id="success-popup" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+      <div class="bg-white rounded-lg p-8 w-full max-w-md shadow-xl text-center transform transition-all">
+        <div class="text-7xl mb-6 animate-bounce">🎉</div>
+        <h2 class="text-3xl font-bold mb-2 text-[#74A57F]">Donation Confirmed!</h2>
+        <p class="text-xl mb-8 text-gray-700">Great Job! Your Kindness helped to resolve hunger.</p>
+        <button onclick="closeSuccessPopup()" class="bg-[#74A57F] text-white px-8 py-3 rounded-lg hover:bg-[#5d8a67] transition-colors duration-300 font-semibold">Close</button>
+      </div>
+    </div>
+
+    <!-- Reviews Modal -->
+    <div id="reviews-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+      <div class="bg-white text-black rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Receiver Reviews</h2>
+            <div id="average-rating" class="text-gray-600 mt-1">
+              Average Rating: <span class="font-bold">0</span>/5
+            </div>
+          </div>
+          <button onclick="closeReviewsModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div id="reviews-container" class="space-y-6">
+          <!-- Reviews will be loaded here -->
+        </div>
+
+        <div id="no-reviews" class="hidden text-center py-8 text-gray-500">
+          No reviews yet
         </div>
       </div>
     </div>
@@ -325,7 +362,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                  alert("Donation confirmed successfully!");
+                  showSuccessPopup();
                   // Refresh both the listings and requests
                   await Promise.all([
                     loadExistingDonations(),
@@ -353,21 +390,30 @@
         .addEventListener("submit", async function (event) {
           event.preventDefault();
 
-          // Get input values
-          const title = document.getElementById("food-title").value.trim();
-          const type = document.getElementById("food-type").value;
-          const quantity = document
-            .getElementById("food-quantity")
-            .value.trim();
-          const expiry = document.getElementById("food-expiry").value;
-          const status = document.getElementById("food-status").value;
-
-          if (!title || !quantity || !expiry) {
-            alert("Please fill in all fields!");
-            return;
-          }
-
+          // Check verification status before allowing submission
           try {
+            const verificationResponse = await fetch(`${baseUrl}/api/donor/status`);
+            const verificationData = await verificationResponse.json();
+
+            if (!verificationData.verified) {
+              alert("Please verify your account before adding food listings.");
+              return;
+            }
+
+            // Get input values
+            const title = document.getElementById("food-title").value.trim();
+            const type = document.getElementById("food-type").value;
+            const quantity = document
+              .getElementById("food-quantity")
+              .value.trim();
+            const expiry = document.getElementById("food-expiry").value;
+            const status = document.getElementById("food-status").value;
+
+            if (!title || !quantity || !expiry) {
+              alert("Please fill in all fields!");
+              return;
+            }
+
             const response = await fetch(`${baseUrl}/api/donor/donations`, {
               method: "POST",
               headers: {
@@ -443,6 +489,15 @@
             const receiverId = this.dataset.receiver;
 
             try {
+              // Check verification status before allowing donation
+              const verificationResponse = await fetch(`${baseUrl}/api/donor/status`);
+              const verificationData = await verificationResponse.json();
+
+              if (!verificationData.verified) {
+                alert("Please verify your account before making donations.");
+                return;
+              }
+
               const response = await fetch(
                 `/api/donations/donate/${donationId}`,
                 {
@@ -466,7 +521,7 @@
 
               const data = await response.json();
               if (data.success) {
-                alert("Donation confirmed successfully!");
+                showSuccessPopup();
                 // Refresh both the listings and requests
                 await Promise.all([
                   loadExistingDonations(),
@@ -766,10 +821,39 @@
 
             if (!verificationStatus || !verifyBtn) return;
 
+            const foodForm = document.getElementById('food-form');
+            const unverifiedMessage = document.getElementById('unverified-message');
+            const formInputs = foodForm.querySelectorAll('input, select, button');
+
             if (data.verified) {
               verifyBtn.innerText = "Verified ✅";
               verifyBtn.disabled = true;
               verifyBtn.classList.add("bg-[#74A57F]");
+              verifyBtn.classList.add("hover:bg-[#5d8a67]", "transition-colors", "duration-300");
+              
+              // Enable food listing form
+              unverifiedMessage.classList.add('hidden');
+              formInputs.forEach(input => {
+                input.disabled = false;
+                if (input.tagName === 'BUTTON') {
+                  input.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+              });
+            } else {
+              verifyBtn.innerText = "Verify Now";
+              verifyBtn.disabled = false;
+              verifyBtn.classList.remove("bg-[#74A57F]");
+              verifyBtn.classList.add("bg-[#74A57F]");
+              verifyBtn.classList.remove("hover:bg-[#5d8a67]", "transition-colors", "duration-300");
+              
+              // Disable food listing form
+              unverifiedMessage.classList.remove('hidden');
+              formInputs.forEach(input => {
+                input.disabled = true;
+                if (input.tagName === 'BUTTON') {
+                  input.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+              });
             }
           } catch (error) {
             console.error("Error fetching verification status:", error);
@@ -973,6 +1057,131 @@
             .padStart(6, "0")
         );
       }
+    </script>
+
+    <script>
+      function showSuccessPopup() {
+        const popup = document.getElementById('success-popup');
+        popup.classList.remove('hidden');
+      }
+
+      function closeSuccessPopup() {
+        const popup = document.getElementById('success-popup');
+        popup.classList.add('hidden');
+      }
+    </script>
+
+    <script>
+      // Function to fetch and display reviews
+      async function loadReviews() {
+        try {
+          // First get the donor's company name
+          const donorResponse = await fetch(`${baseUrl}/api/donor/status`, {
+            credentials: "include"
+          });
+          
+          if (!donorResponse.ok) {
+            throw new Error('Failed to fetch donor details');
+          }
+
+          const donorData = await donorResponse.json();
+          console.log('Donor data:', donorData); // Debug log
+
+          if (!donorData.companyname) {
+            throw new Error('Company name not found');
+          }
+
+          // Fetch all donations for the donor
+          const response = await fetch(`${baseUrl}/api/donor/donations`, {
+            credentials: "include"
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch donations');
+          }
+
+          const data = await response.json();
+          console.log('Donations data:', data); // Debug log
+
+          const reviewsContainer = document.getElementById('reviews-container');
+          const noReviews = document.getElementById('no-reviews');
+          const averageRatingEl = document.getElementById('average-rating').querySelector('span');
+
+          // Filter donations that have reviews
+          const reviews = data.donations.filter(donation => 
+            donation.review && 
+            donation.review.rating && 
+            donation.review.comment
+          );
+
+          if (!reviews || reviews.length === 0) {
+            reviewsContainer.innerHTML = '';
+            noReviews.classList.remove('hidden');
+            averageRatingEl.textContent = '0';
+            return;
+          }
+
+          // Calculate average rating
+          const totalRating = reviews.reduce((sum, donation) => sum + donation.review.rating, 0);
+          const averageRating = (totalRating / reviews.length).toFixed(1);
+          averageRatingEl.textContent = averageRating;
+
+          noReviews.classList.add('hidden');
+          reviewsContainer.innerHTML = reviews.map(donation => `
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <h3 class="font-bold text-lg">${donation.receiverId?.nponame || 'Unknown Receiver'}</h3>
+                  <p class="text-sm text-gray-500">${new Date(donation.review.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div class="flex items-center">
+                  ${Array(5).fill().map((_, i) => `
+                    <span class="text-2xl ${i < (donation.review.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}">★</span>
+                  `).join('')}
+                </div>
+              </div>
+              <p class="text-gray-700">${donation.review.comment || 'No comment provided'}</p>
+              <div class="mt-2 text-sm text-gray-500">
+                <p>Food Item: ${donation.title || 'Not specified'}</p>
+              </div>
+            </div>
+          `).join('');
+        } catch (error) {
+          console.error('Error loading reviews:', error);
+          const reviewsContainer = document.getElementById('reviews-container');
+          reviewsContainer.innerHTML = `
+            <div class="text-red-500 text-center py-4">
+              ${error.message || 'Failed to load reviews. Please try again later.'}
+            </div>
+          `;
+        }
+      }
+
+      // Function to show reviews modal
+      function showReviewsModal() {
+        const modal = document.getElementById('reviews-modal');
+        modal.classList.remove('hidden');
+        loadReviews();
+      }
+
+      // Function to close reviews modal
+      function closeReviewsModal() {
+        const modal = document.getElementById('reviews-modal');
+        modal.classList.add('hidden');
+      }
+
+      // Add click event listener to reviews link
+      document.getElementById('reviews-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        showReviewsModal();
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('reviews-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeReviewsModal();
+        }
+      });
     </script>
   </body>
 </html>

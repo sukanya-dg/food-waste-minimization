@@ -1,19 +1,13 @@
-let puppeteer;
+const puppeteer = require("puppeteer");
+
 let launchOptions;
 
 async function getLaunchOptions() {
-  const isRender = !!process.env.RENDER;
-
-  puppeteer = require("puppeteer"); // always use full puppeteer
-
   return {
     headless: true,
-    executablePath: process.env.CHROME_PATH || undefined,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   };
 }
-
 async function verifyNgo(ngoName, regno) {
   let browser;
   try {

@@ -6,6 +6,9 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
 
+//Trust the first proxy (Render’s load‑balancer)
+app.set("trust proxy", 1);
+
 // ✅ Load environment variables
 dotenv.config();
 
@@ -39,6 +42,7 @@ app.use(cors({
 
 // ✅ Set up session
 app.use(session({
+  proxy: true,              // 2) honor X-Forwarded-* headers so secure cookies get set
   secret: 'your-secret-key',
   resave: false,
   saveUninitialized: false,

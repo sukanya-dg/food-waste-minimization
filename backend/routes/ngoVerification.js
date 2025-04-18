@@ -2,26 +2,15 @@ let puppeteer;
 let launchOptions;
 
 async function getLaunchOptions() {
-  const isVercel = process.env.VERCEL === "1";
+  const isRender = !!process.env.RENDER;
 
-  if (isVercel) {
-    const chromium = require("chrome-aws-lambda");
-    puppeteer = require("puppeteer-core");
+  puppeteer = require("puppeteer"); // always use full puppeteer
 
-    return {
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath || "/usr/bin/chromium-browser",
-      headless: chromium.headless,
-    };
-  } else {
-    puppeteer = require("puppeteer");
-
-    return {
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    };
-  }
+  return {
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: puppeteer.executablePath(), // ensures proper chromium path on Render
+  };
 }
 
 async function verifyNgo(ngoName, regno) {

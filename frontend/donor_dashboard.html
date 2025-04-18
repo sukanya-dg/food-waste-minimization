@@ -149,6 +149,15 @@
         .notification-dropdown {
           width: 250px;
         }
+
+        #food-form {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        #food-form button {
+          width: 100%;
+        }
       }
 
       @media (max-width: 768px) {
@@ -196,10 +205,61 @@
 
         #food-form {
           grid-template-columns: 1fr;
+          gap: 8px;
         }
 
-        .grid-cols-2 {
-          grid-template-columns: 1fr;
+        #food-form input,
+        #food-form select {
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        #food-form button {
+          width: 100%;
+          padding: 8px;
+        }
+
+        /* Success Popup Responsive */
+        #success-popup div {
+          width: 90%;
+          max-width: 400px;
+          padding: 20px;
+        }
+
+        #success-popup h2 {
+          font-size: 1.5rem;
+        }
+
+        #success-popup p {
+          font-size: 1rem;
+        }
+
+        /* Reviews Modal Responsive */
+        #reviews-modal div {
+          width: 90%;
+          max-width: 90%;
+          padding: 15px;
+        }
+
+        #reviews-modal h2 {
+          font-size: 1.5rem;
+        }
+
+        .reviews-container {
+          max-height: 60vh;
+          overflow-y: auto;
+        }
+
+        /* Complaint Modal Responsive */
+        #complaint-modal div {
+          width: 90%;
+          max-width: 90%;
+          padding: 15px;
+        }
+
+        #complaint-modal textarea {
+          width: 100%;
+          box-sizing: border-box;
         }
       }
 
@@ -235,6 +295,75 @@
         p {
           font-size: 0.9rem;
         }
+
+        /* Success Popup Mobile */
+        #success-popup div {
+          width: 95%;
+          padding: 15px;
+        }
+
+        #success-popup .text-7xl {
+          font-size: 4rem;
+        }
+
+        #success-popup h2 {
+          font-size: 1.2rem;
+        }
+
+        #success-popup p {
+          font-size: 0.9rem;
+        }
+
+        /* Reviews Modal Mobile */
+        #reviews-modal div {
+          width: 95%;
+          padding: 10px;
+        }
+
+        #reviews-modal h2 {
+          font-size: 1.2rem;
+        }
+
+        .reviews-container {
+          max-height: 70vh;
+        }
+
+        /* Complaint Modal Mobile */
+        #complaint-modal div {
+          width: 95%;
+          padding: 10px;
+        }
+
+        #complaint-modal h2 {
+          font-size: 1.2rem;
+        }
+      }
+
+      /* Add smooth transitions */
+      .notification-dropdown,
+      #success-popup,
+      #reviews-modal,
+      #complaint-modal {
+        transition: all 0.3s ease;
+      }
+
+      /* Ensure proper z-index layering */
+      .sidebar {
+        z-index: 1000;
+      }
+
+      .mobile-menu-btn {
+        z-index: 1001;
+      }
+
+      .notification-dropdown {
+        z-index: 1002;
+      }
+
+      #success-popup,
+      #reviews-modal,
+      #complaint-modal {
+        z-index: 1003;
       }
     </style>
   </head>

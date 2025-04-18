@@ -59,7 +59,7 @@
         background: #e0c1a3;
       }
       .header {
-        background: #74A57F;
+        background: #74a57f;
         padding: 20px;
         text-align: center;
         font-size: 1.5rem;
@@ -71,15 +71,15 @@
         font-weight: 700;
         letter-spacing: 0.1em;
       }
-      
+
       .sidebar-spacing {
         margin: 20px 0;
       }
-      
+
       .home-button {
         width: 100%;
         padding: 10px;
-        background:#127536;
+        background: #127536;
         color: white;
         border: none;
         border-radius: 5px;
@@ -87,7 +87,7 @@
         transition: background-color 0.3s;
         margin-bottom: 15px;
       }
-      
+
       .home-button:hover {
         background: #5d8a67;
       }
@@ -101,11 +101,16 @@
       <nav>
         <ul>
           <li class="py-2">
-            <button onclick="window.location.href='home.html'" class="home-button">
+            <button
+              onclick="window.location.href='home.html'"
+              class="home-button"
+            >
               🏠 Home
             </button>
           </li>
-          <li class="py-2"><a href="#" class="block" id="reviews-link">⭐ Reviews</a></li>
+          <li class="py-2">
+            <a href="#" class="block" id="reviews-link">⭐ Reviews</a>
+          </li>
           <!-- Logout Button -->
           <li class="py-96 mt-4"></li>
           <div class="mt-auto flex justify-center pb-4">
@@ -135,19 +140,35 @@
     <!-- Main Content -->
     <main class="flex-1 p-6">
       <header class="flex justify-between items-center mb-5 bg-[#74A57F] p-4">
-        <h1 class="text-2xl font-bold text-white text-center flex-1 tracking-wider">DONOR DASHBOARD</h1>
+        <h1
+          class="text-2xl font-bold text-white text-center flex-1 tracking-wider"
+        >
+          DONOR DASHBOARD
+        </h1>
         <div class="flex items-center gap-4">
-          <div class="relative text-red-500 text-xl cursor-pointer" id="notification-btn">
+          <div
+            class="relative text-red-500 text-xl cursor-pointer"
+            id="notification-btn"
+          >
             🔔
-            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+            <span
+              id="notification-count"
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full"
+            >
               0
             </span>
             <!-- Notifications Dropdown -->
-            <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm">
+            <div
+              id="notification-dropdown"
+              class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm"
+            >
               <p class="text-gray-500">Loading...</p>
             </div>
           </div>
-          <button id="raiseComplaintBtn" class="bg-green-700 text-white text-sm px-3 py-1 rounded hover:bg-yellow-600 transition">
+          <button
+            id="raiseComplaintBtn"
+            class="bg-green-700 text-white text-sm px-3 py-1 rounded hover:bg-yellow-600 transition"
+          >
             📝 Raise Complaint
           </button>
         </div>
@@ -164,8 +185,10 @@
           <strong>Premises Address:</strong>
           <span id="address">Verify First</span>
         </p>
-        
-
+        <p>
+          <strong></strong>
+          <span id="phone"></span>
+        </p>
         <!-- Verification Button -->
         <button
           id="verifyNow"
@@ -179,9 +202,15 @@
       <!-- Add New Food Listing Form -->
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Add New Food Listing</h2>
-        <div id="unverified-message" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+        <div
+          id="unverified-message"
+          class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4"
+        >
           <p class="font-bold">Verification Required</p>
-          <p>Please verify your account to add food listings. Click the "Verify Now" button above to proceed.</p>
+          <p>
+            Please verify your account to add food listings. Click the "Verify
+            Now" button above to proceed.
+          </p>
         </div>
         <form id="food-form" class="grid grid-cols-2 gap-4">
           <input
@@ -202,7 +231,12 @@
             class="p-2 border rounded"
             disabled
           />
-          <input type="date" id="food-expiry" class="p-2 border rounded" disabled />
+          <input
+            type="date"
+            id="food-expiry"
+            class="p-2 border rounded"
+            disabled
+          />
           <select id="food-status" class="p-2 border rounded" disabled>
             <option value="Active">Active</option>
             <option value="Expired">Expired</option>
@@ -269,18 +303,37 @@
     </div>
 
     <!-- Success Popup Modal -->
-    <div id="success-popup" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
-      <div class="bg-white rounded-lg p-8 w-full max-w-md shadow-xl text-center transform transition-all">
+    <div
+      id="success-popup"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50"
+    >
+      <div
+        class="bg-white rounded-lg p-8 w-full max-w-md shadow-xl text-center transform transition-all"
+      >
         <div class="text-7xl mb-6 animate-bounce">🎉</div>
-        <h2 class="text-3xl font-bold mb-2 text-[#74A57F]">Donation Confirmed!</h2>
-        <p class="text-xl mb-8 text-gray-700">Great Job! Your Kindness helped to resolve hunger.</p>
-        <button onclick="closeSuccessPopup()" class="bg-[#74A57F] text-white px-8 py-3 rounded-lg hover:bg-[#5d8a67] transition-colors duration-300 font-semibold">Close</button>
+        <h2 class="text-3xl font-bold mb-2 text-[#74A57F]">
+          Donation Confirmed!
+        </h2>
+        <p class="text-xl mb-8 text-gray-700">
+          Great Job! Your Kindness helped to resolve hunger.
+        </p>
+        <button
+          onclick="closeSuccessPopup()"
+          class="bg-[#74A57F] text-white px-8 py-3 rounded-lg hover:bg-[#5d8a67] transition-colors duration-300 font-semibold"
+        >
+          Close
+        </button>
       </div>
     </div>
 
     <!-- Reviews Modal -->
-    <div id="reviews-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
-      <div class="bg-white text-black rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+    <div
+      id="reviews-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50"
+    >
+      <div
+        class="bg-white text-black rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto"
+      >
         <div class="flex justify-between items-center mb-6">
           <div>
             <h2 class="text-2xl font-bold">Receiver Reviews</h2>
@@ -288,13 +341,26 @@
               Average Rating: <span class="font-bold">0</span>/5
             </div>
           </div>
-          <button onclick="closeReviewsModal()" class="text-gray-500 hover:text-gray-700">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          <button
+            onclick="closeReviewsModal()"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
             </svg>
           </button>
         </div>
-        
+
         <div id="reviews-container" class="space-y-6">
           <!-- Reviews will be loaded here -->
         </div>
@@ -384,7 +450,7 @@
                   // Refresh both the listings and requests
                   await Promise.all([
                     loadExistingDonations(),
-                    fetchDonationRequests()
+                    fetchDonationRequests(),
                   ]);
                 } else {
                   throw new Error(data.message || "Failed to confirm donation");
@@ -392,7 +458,8 @@
               } catch (error) {
                 console.error("Error confirming donation:", error);
                 alert(
-                  error.message || "Failed to confirm donation. Please try again."
+                  error.message ||
+                    "Failed to confirm donation. Please try again."
                 );
               }
             });
@@ -410,7 +477,9 @@
 
           // Check verification status before allowing submission
           try {
-            const verificationResponse = await fetch(`${baseUrl}/api/donor/status`);
+            const verificationResponse = await fetch(
+              `${baseUrl}/api/donor/status`
+            );
             const verificationData = await verificationResponse.json();
 
             if (!verificationData.verified) {
@@ -477,15 +546,20 @@
             donation.expiryDate
           ).toLocaleDateString()}</td>
           <td class="p-2 ${
-            donation.status === 'Active' ? 'text-green-500' : 
-            donation.status === 'Expired' ? 'text-red-500' :
-            donation.status === 'Claimed' ? 'text-yellow-500' :
-            donation.status === 'Confirmed' ? 'text-green-500' : 'text-gray-500'
+            donation.status === "Active"
+              ? "text-green-500"
+              : donation.status === "Expired"
+              ? "text-red-500"
+              : donation.status === "Claimed"
+              ? "text-yellow-500"
+              : donation.status === "Confirmed"
+              ? "text-green-500"
+              : "text-gray-500"
           }">${donation.status}</td>
-          <td class="p-2">${donation.receiverId?.nponame || '-'}</td>
+          <td class="p-2">${donation.receiverId?.nponame || "-"}</td>
           <td class="p-2">
             ${
-              donation.status === 'Claimed'
+              donation.status === "Claimed"
                 ? `
               <button class="bg-green-500 text-white px-2 py-1 rounded donate-btn" 
                 data-id="${donation._id}"
@@ -493,7 +567,7 @@
                 Donate
               </button>
             `
-                : ''
+                : ""
             }
           </td>
         `;
@@ -508,7 +582,9 @@
 
             try {
               // Check verification status before allowing donation
-              const verificationResponse = await fetch(`${baseUrl}/api/donor/status`);
+              const verificationResponse = await fetch(
+                `${baseUrl}/api/donor/status`
+              );
               const verificationData = await verificationResponse.json();
 
               if (!verificationData.verified) {
@@ -543,7 +619,7 @@
                 // Refresh both the listings and requests
                 await Promise.all([
                   loadExistingDonations(),
-                  fetchDonationRequests()
+                  fetchDonationRequests(),
                 ]);
               } else {
                 throw new Error(data.message || "Failed to confirm donation");
@@ -569,12 +645,12 @@
           if (data.success) {
             const tableBody = document.querySelector("#food-listings tbody");
             tableBody.innerHTML = ""; // Clear existing entries
-            
+
             // Filter out collected donations
-            const activeDonations = data.donations.filter(donation => 
-              donation.status !== 'Collected'
+            const activeDonations = data.donations.filter(
+              (donation) => donation.status !== "Collected"
             );
-            
+
             activeDonations.forEach((donation) => addListingToTable(donation));
           }
         } catch (error) {
@@ -817,10 +893,10 @@
               companyNameEl.textContent = data.companyname || "Unknown Donor";
               addressEl.textContent = data.address || "Verify First";
               localStorage.setItem("donorcompanyname", data.companyname || "");
-              
+              const phoneEl = document.getElementById("phone");
 
               // Inside fetchDonorDetails function, after setting companyNameEl and addressEl
-              phoneEl.textContent = data.phone || "Not Available";
+              phoneEl.textContent = data.phone || "";
             } else {
               console.error("Failed to fetch donor details:", data.message);
               companyNameEl.textContent = "Unknown Donor";
@@ -839,22 +915,29 @@
 
             if (!verificationStatus || !verifyBtn) return;
 
-            const foodForm = document.getElementById('food-form');
-            const unverifiedMessage = document.getElementById('unverified-message');
-            const formInputs = foodForm.querySelectorAll('input, select, button');
+            const foodForm = document.getElementById("food-form");
+            const unverifiedMessage =
+              document.getElementById("unverified-message");
+            const formInputs = foodForm.querySelectorAll(
+              "input, select, button"
+            );
 
             if (data.verified) {
               verifyBtn.innerText = "Verified ✅";
               verifyBtn.disabled = true;
               verifyBtn.classList.add("bg-[#74A57F]");
-              verifyBtn.classList.add("hover:bg-[#5d8a67]", "transition-colors", "duration-300");
-              
+              verifyBtn.classList.add(
+                "hover:bg-[#5d8a67]",
+                "transition-colors",
+                "duration-300"
+              );
+
               // Enable food listing form
-              unverifiedMessage.classList.add('hidden');
-              formInputs.forEach(input => {
+              unverifiedMessage.classList.add("hidden");
+              formInputs.forEach((input) => {
                 input.disabled = false;
-                if (input.tagName === 'BUTTON') {
-                  input.classList.remove('opacity-50', 'cursor-not-allowed');
+                if (input.tagName === "BUTTON") {
+                  input.classList.remove("opacity-50", "cursor-not-allowed");
                 }
               });
             } else {
@@ -862,14 +945,18 @@
               verifyBtn.disabled = false;
               verifyBtn.classList.remove("bg-[#74A57F]");
               verifyBtn.classList.add("bg-[#74A57F]");
-              verifyBtn.classList.remove("hover:bg-[#5d8a67]", "transition-colors", "duration-300");
-              
+              verifyBtn.classList.remove(
+                "hover:bg-[#5d8a67]",
+                "transition-colors",
+                "duration-300"
+              );
+
               // Disable food listing form
-              unverifiedMessage.classList.remove('hidden');
-              formInputs.forEach(input => {
+              unverifiedMessage.classList.remove("hidden");
+              formInputs.forEach((input) => {
                 input.disabled = true;
-                if (input.tagName === 'BUTTON') {
-                  input.classList.add('opacity-50', 'cursor-not-allowed');
+                if (input.tagName === "BUTTON") {
+                  input.classList.add("opacity-50", "cursor-not-allowed");
                 }
               });
             }
@@ -1079,13 +1166,13 @@
 
     <script>
       function showSuccessPopup() {
-        const popup = document.getElementById('success-popup');
-        popup.classList.remove('hidden');
+        const popup = document.getElementById("success-popup");
+        popup.classList.remove("hidden");
       }
 
       function closeSuccessPopup() {
-        const popup = document.getElementById('success-popup');
-        popup.classList.add('hidden');
+        const popup = document.getElementById("success-popup");
+        popup.classList.add("hidden");
       }
     </script>
 
@@ -1095,81 +1182,109 @@
         try {
           // First get the donor's company name
           const donorResponse = await fetch(`${baseUrl}/api/donor/status`, {
-            credentials: "include"
+            credentials: "include",
           });
-          
+
           if (!donorResponse.ok) {
-            throw new Error('Failed to fetch donor details');
+            throw new Error("Failed to fetch donor details");
           }
 
           const donorData = await donorResponse.json();
-          console.log('Donor data:', donorData); // Debug log
+          console.log("Donor data:", donorData); // Debug log
 
           if (!donorData.companyname) {
-            throw new Error('Company name not found');
+            throw new Error("Company name not found");
           }
 
           // Fetch all donations for the donor
           const response = await fetch(`${baseUrl}/api/donor/donations`, {
-            credentials: "include"
+            credentials: "include",
           });
-          
+
           if (!response.ok) {
-            throw new Error('Failed to fetch donations');
+            throw new Error("Failed to fetch donations");
           }
 
           const data = await response.json();
-          console.log('Donations data:', data); // Debug log
+          console.log("Donations data:", data); // Debug log
 
-          const reviewsContainer = document.getElementById('reviews-container');
-          const noReviews = document.getElementById('no-reviews');
-          const averageRatingEl = document.getElementById('average-rating').querySelector('span');
+          const reviewsContainer = document.getElementById("reviews-container");
+          const noReviews = document.getElementById("no-reviews");
+          const averageRatingEl = document
+            .getElementById("average-rating")
+            .querySelector("span");
 
           // Filter donations that have reviews
-          const reviews = data.donations.filter(donation => 
-            donation.review && 
-            donation.review.rating && 
-            donation.review.comment
+          const reviews = data.donations.filter(
+            (donation) =>
+              donation.review &&
+              donation.review.rating &&
+              donation.review.comment
           );
 
           if (!reviews || reviews.length === 0) {
-            reviewsContainer.innerHTML = '';
-            noReviews.classList.remove('hidden');
-            averageRatingEl.textContent = '0';
+            reviewsContainer.innerHTML = "";
+            noReviews.classList.remove("hidden");
+            averageRatingEl.textContent = "0";
             return;
           }
 
           // Calculate average rating
-          const totalRating = reviews.reduce((sum, donation) => sum + donation.review.rating, 0);
+          const totalRating = reviews.reduce(
+            (sum, donation) => sum + donation.review.rating,
+            0
+          );
           const averageRating = (totalRating / reviews.length).toFixed(1);
           averageRatingEl.textContent = averageRating;
 
-          noReviews.classList.add('hidden');
-          reviewsContainer.innerHTML = reviews.map(donation => `
+          noReviews.classList.add("hidden");
+          reviewsContainer.innerHTML = reviews
+            .map(
+              (donation) => `
             <div class="bg-gray-50 p-4 rounded-lg">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="font-bold text-lg">${donation.receiverId?.nponame || 'Unknown Receiver'}</h3>
-                  <p class="text-sm text-gray-500">${new Date(donation.review.createdAt).toLocaleDateString()}</p>
+                  <h3 class="font-bold text-lg">${
+                    donation.receiverId?.nponame || "Unknown Receiver"
+                  }</h3>
+                  <p class="text-sm text-gray-500">${new Date(
+                    donation.review.createdAt
+                  ).toLocaleDateString()}</p>
                 </div>
                 <div class="flex items-center">
-                  ${Array(5).fill().map((_, i) => `
-                    <span class="text-2xl ${i < (donation.review.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}">★</span>
-                  `).join('')}
+                  ${Array(5)
+                    .fill()
+                    .map(
+                      (_, i) => `
+                    <span class="text-2xl ${
+                      i < (donation.review.rating || 0)
+                        ? "text-yellow-400"
+                        : "text-gray-300"
+                    }">★</span>
+                  `
+                    )
+                    .join("")}
                 </div>
               </div>
-              <p class="text-gray-700">${donation.review.comment || 'No comment provided'}</p>
+              <p class="text-gray-700">${
+                donation.review.comment || "No comment provided"
+              }</p>
               <div class="mt-2 text-sm text-gray-500">
-                <p>Food Item: ${donation.title || 'Not specified'}</p>
+                <p>Food Item: ${donation.title || "Not specified"}</p>
               </div>
             </div>
-          `).join('');
+          `
+            )
+            .join("");
         } catch (error) {
-          console.error('Error loading reviews:', error);
-          const reviewsContainer = document.getElementById('reviews-container');
+          console.error("Error loading reviews:", error);
+          const reviewsContainer = document.getElementById("reviews-container");
           reviewsContainer.innerHTML = `
             <div class="text-red-500 text-center py-4">
-              ${error.message || 'Failed to load reviews. Please try again later.'}
+              ${
+                error.message ||
+                "Failed to load reviews. Please try again later."
+              }
             </div>
           `;
         }
@@ -1177,29 +1292,33 @@
 
       // Function to show reviews modal
       function showReviewsModal() {
-        const modal = document.getElementById('reviews-modal');
-        modal.classList.remove('hidden');
+        const modal = document.getElementById("reviews-modal");
+        modal.classList.remove("hidden");
         loadReviews();
       }
 
       // Function to close reviews modal
       function closeReviewsModal() {
-        const modal = document.getElementById('reviews-modal');
-        modal.classList.add('hidden');
+        const modal = document.getElementById("reviews-modal");
+        modal.classList.add("hidden");
       }
 
       // Add click event listener to reviews link
-      document.getElementById('reviews-link').addEventListener('click', function(e) {
-        e.preventDefault();
-        showReviewsModal();
-      });
+      document
+        .getElementById("reviews-link")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          showReviewsModal();
+        });
 
       // Close modal when clicking outside
-      document.getElementById('reviews-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeReviewsModal();
-        }
-      });
+      document
+        .getElementById("reviews-modal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeReviewsModal();
+          }
+        });
     </script>
   </body>
 </html>

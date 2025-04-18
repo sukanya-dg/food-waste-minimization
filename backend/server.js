@@ -6,9 +6,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
 
-//Trust the first proxy (Render’s load‑balancer)
-app.set("trust proxy", 1);
-
 // ✅ Load environment variables
 dotenv.config();
 
@@ -27,6 +24,8 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
 
 // ✅ Middleware
+//Trust the first proxy (Render’s load‑balancer)
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());

@@ -236,9 +236,10 @@
 
         /* Reviews Modal Responsive */
         #reviews-modal div {
-          width: 90%;
-          max-width: 90%;
+          width: 95%;
+          max-width: 95%;
           padding: 15px;
+          margin: 10px;
         }
 
         #reviews-modal h2 {
@@ -318,6 +319,7 @@
         #reviews-modal div {
           width: 95%;
           padding: 10px;
+          margin: 5px;
         }
 
         #reviews-modal h2 {
@@ -618,7 +620,7 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50"
     >
       <div
-        class="bg-white text-black rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto"
+        class="bg-white text-black rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto shadow-[0_4px_6px_#d5f7d5]"
       >
         <div class="flex justify-between items-center mb-6">
           <div>
@@ -1527,7 +1529,7 @@
           reviewsContainer.innerHTML = reviews
             .map(
               (donation) => `
-            <div class="bg-gray-50 p-4 rounded-lg">
+            <div class="bg-[#d5f7d5] p-4 rounded-lg">
               <div class="flex justify-between items-start mb-2">
                 <div>
                   <h3 class="font-bold text-lg">${

@@ -253,3 +253,8 @@ async function fetchReceiverRequests() {
     console.error('Error fetching requests:', error);
   }
 }
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
+}

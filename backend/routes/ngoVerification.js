@@ -8,8 +8,9 @@ async function getLaunchOptions() {
 
   return {
     headless: true,
+    executablePath: process.env.CHROME_PATH || undefined,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    
+
   };
 }
 

@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server",
-    "postinstall": "puppeteer install"
+    "postinstall": "npx puppeteer install"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +25,6 @@
     "morgan": "^1.10.0",
     "mysql2": "^3.14.0",
     "puppeteer": "^24.6.1",
-    "puppeteer-core": "^24.6.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "razorpay": "^2.9.6"

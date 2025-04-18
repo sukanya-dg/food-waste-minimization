@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="chatbot.css">
 
     <style>
         body {
@@ -280,6 +282,32 @@
     </div>
 </footer>
 
+    <!-- Chatbot -->
+    <div class="chatbot-container">
+        <div class="chatbot-button">
+            <i class="fas fa-comments"></i>
+        </div>
+        
+        <div class="chatbot-box">
+            <div class="chatbot-header">
+                <h3>Aahar Link Support</h3>
+                <span class="close-chat">&times;</span>
+            </div>
+            
+            <div class="chat-messages">
+                <!-- Messages will be added here dynamically -->
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" placeholder="Type your message...">
+                <button>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="chatbot.js"></script>
 </body>
 </html>  
 

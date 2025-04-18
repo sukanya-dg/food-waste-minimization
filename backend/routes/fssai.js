@@ -1,6 +1,4 @@
 const express = require("express");
-const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const donorModel = require("../models/Donor");
 
 const browserPaths = {

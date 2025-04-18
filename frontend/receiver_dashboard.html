@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Receiver Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Define baseUrl at the top level to be used by all scripts -->
+    <script>
+      const baseUrl = window.location.origin;
+    </script>
     <style>
       .sidebar {
         width: 250px;
@@ -227,16 +231,53 @@
       #notification-count.hidden {
         display: none;
       }
+
+      .header {
+        background: #0b464a;
+        padding: 20px;
+        text-align: center;
+        font-size: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+      
+      .sidebar-spacing {
+        margin: 20px 0;
+      }
+      
+      .home-button {
+        width: 100%;
+        padding: 10px;
+        background: #075261;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 15px;
+      }
+      
+      .home-button:hover {
+        background: #064751;
+      }
     </style>
   </head>
   <body class="flex bg-opacity text-white">
     <!-- Sidebar -->
     <aside class="sidebar text-white p-5 min-h-screen">
       <h2 class="text-3xl font-bold">Aahar Link</h2>
-      <p class="text-sm mb-5">Receiver Portal</p>
+      <div class="sidebar-spacing"></div>
+      <button onclick="window.location.href='home.html'" class="home-button">
+        🏠 Home
+      </button>
       <nav>
         <ul>
-          <li class="py-2"><a href="#" class="block">🏠 Dashboard</a></li>
+          
           <!-- Logout Button -->
           <li class="py-96 mt-4"></li>
           <div class="mt-auto flex justify-center pb-4">
@@ -265,34 +306,22 @@
 
     <!-- Main Content -->
     <main class="flex-1 p-6">
-      <header class="flex justify-between items-center mb-5">
-        <h1 class="text-2xl font-bold">Receiver Dashboard</h1>
+      <header class="flex justify-between items-center mb-5 bg-[#0b464a] p-4">
+        <h1 class="text-2xl font-bold text-white text-center flex-1 tracking-wider">RECEIVER DASHBOARD</h1>
         <div class="flex items-center gap-4">
-          <div class="notification-bell-container">
-            <div
-              class="relative text-red-500 text-xl cursor-pointer"
-              id="notification-btn"
-            >
-              🔔
-              <span id="notification-count" class="hidden">0</span>
-            </div>
-            <div
-              id="notification-dropdown"
-              class="notification-dropdown hidden"
-            >
-              <div id="notification-list" class="divide-y divide-gray-200">
-                <!-- Notifications will be loaded here -->
-              </div>
+          <div class="relative text-red-500 text-xl cursor-pointer" id="notification-btn">
+            🔔
+            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+              0
+            </span>
+            <!-- Notifications Dropdown -->
+            <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm">
+              <p class="text-gray-500">Loading...</p>
             </div>
           </div>
-
-          <button
-            id="raise-complaint-btn"
-            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-          >
+          <button id="raiseComplaintBtn" class="bg-[#075261] text-white text-sm px-3 py-1 rounded hover:bg-[#064751] transition">
             📝 Raise Complaint
           </button>
-          <span class="bg-[#0B464A] text-white px-3 py-1 rounded-full">R</span>
         </div>
       </header>
 
@@ -316,7 +345,7 @@
         <!-- Add verification button -->
         <button
           id="verifyNow"
-          class="w-full mt-3 mb-4 bg-[#74A57F] text-white py-2 rounded"
+          class="w-full mt-3 mb-4 bg-[#0b464a] text-white py-2 rounded"
         >
           Verify Now
         </button>
@@ -1061,8 +1090,7 @@
 
     <!-- Common variables -->
     <script>
-      // Define baseUrl at the top level to be used by all scripts
-      const baseUrl = window.location.origin;
+      // Remove baseUrl declaration since it's now at the top
     </script>
 
     <!-- Donor Details Modal -->
@@ -1111,428 +1139,295 @@
 
     <!-- Complaint Modal Logic-->
     <script>
-      // Get complaint modal elements
       const complaintModal = document.getElementById("complaint-modal");
-      const raiseComplaintBtn = document.getElementById("raise-complaint-btn");
+      const raiseComplaintBtn = document.getElementById("raiseComplaintBtn");
       const cancelComplaintBtn = document.getElementById("cancel-complaint");
       const submitComplaintBtn = document.getElementById("submit-complaint");
-      const ticketIdSpan = document.getElementById("ticket-id");
 
-      // Function to generate random ticket number
-      function generateTicketNumber() {
-        return "#" + Math.floor(Math.random() * 90000 + 10000);
-      }
-
-      // Function to reset and open complaint modal
-      function openComplaintModal() {
-        const ticketNumber = generateTicketNumber();
-        ticketIdSpan.textContent = ticketNumber;
+      raiseComplaintBtn.addEventListener("click", () => {
         document.getElementById("complaint-title").value = "";
         document.getElementById("complaint-desc").value = "";
+        document.getElementById("ticket-id").textContent = generateTicketID();
         complaintModal.classList.remove("hidden");
-      }
+      });
 
-      // Function to close complaint modal
-      function closeComplaintModal() {
+      cancelComplaintBtn.addEventListener("click", () => {
         complaintModal.classList.add("hidden");
-      }
+      });
 
-      // Event Listeners
-      if (raiseComplaintBtn) {
-        raiseComplaintBtn.addEventListener("click", openComplaintModal);
-      }
+      submitComplaintBtn.addEventListener("click", () => {
+        const title = document.getElementById("complaint-title").value.trim();
+        const desc = document.getElementById("complaint-desc").value.trim();
+        const ticketId = document.getElementById("ticket-id").textContent;
 
-      if (cancelComplaintBtn) {
-        cancelComplaintBtn.addEventListener("click", closeComplaintModal);
-      }
+        if (!title || !desc) {
+          alert("Please fill in all fields.");
+          return;
+        }
 
-      if (submitComplaintBtn) {
-        submitComplaintBtn.addEventListener("click", async () => {
-          const title = document.getElementById("complaint-title").value.trim();
-          const desc = document.getElementById("complaint-desc").value.trim();
-          const ticketId = ticketIdSpan.textContent;
+        const complaintData = {
+          ticketId,
+          title,
+          description: desc,
+          createdAt: new Date().toISOString(),
+        };
 
-          if (!title || !desc) {
-            alert("Please fill in all fields.");
-            return;
-          }
+        console.log("Complaint Submitted:", complaintData);
 
-          const complaintData = {
-            ticketId,
-            title,
-            description: desc,
-            createdAt: new Date().toISOString(),
-          };
-
-          try {
-            const response = await fetch(`${baseUrl}/api/complaints/raise`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify(complaintData),
-            });
-
-            const data = await response.json();
+        // Send complaint to backend
+        fetch(`${baseUrl}/api/complaints/raise`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Important: Include cookies for session
+          body: JSON.stringify(complaintData),
+        })
+          .then((res) => res.json())
+          .then((data) => {
             if (data.success) {
               alert(`Complaint submitted! Your ticket number is ${ticketId}`);
-              closeComplaintModal();
-              // Refresh notifications to show the new complaint
-              if (typeof loadNotifications === "function") {
-                loadNotifications();
-              }
+              complaintModal.classList.add("hidden");
             } else {
-              alert(
-                "Failed to submit complaint: " +
-                  (data.message || "Please try again.")
-              );
+              alert("Failed to submit complaint. Try again.");
             }
-          } catch (err) {
+          })
+          .catch((err) => {
             console.error("Error submitting complaint:", err);
-            alert("Something went wrong. Please try again.");
-          }
-        });
+            alert("Something went wrong.");
+          });
+      });
+
+      function generateTicketID() {
+        return (
+          "#" +
+          Math.floor(Math.random() * 1000000)
+            .toString()
+            .padStart(6, "0")
+        );
       }
     </script>
 
+    <script>
+      function showSuccessPopup() {
+        const popup = document.getElementById('success-popup');
+        popup.classList.remove('hidden');
+      }
+
+      function closeSuccessPopup() {
+        const popup = document.getElementById('success-popup');
+        popup.classList.add('hidden');
+      }
+    </script>
+
+
     <!-- Notification handling script -->
     <script>
-      // Function to show complaint modal
-      function showComplaintModal(complaint) {
-        // Remove any existing modal
-        const existingModal = document.querySelector(".complaint-modal");
-        if (existingModal) {
-          existingModal.remove();
-        }
+      // Remove baseUrl declaration since it's now at the top
+      let notifications = [];
 
+      async function loadNotifications() {
+        try {
+          console.log("Loading notifications...");
+          const res = await fetch(`${baseUrl}/api/complaints/notifications`, {
+            credentials: "include", // Important: Include cookies for session
+          });
+          const data = await res.json();
+          console.log("Notifications response:", data);
+
+          if (data.success) {
+            notifications = data.notifications;
+            updateNotificationUI();
+          } else {
+            console.error("Failed to load notifications:", data.message);
+          }
+        } catch (error) {
+          console.error("Error loading notifications:", error);
+        }
+      }
+
+      function updateNotificationUI() {
+        const dropdown = document.getElementById("notification-dropdown");
+        const count = document.getElementById("notification-count");
+
+        // Update notification count
+        const unreadCount = notifications.filter((n) => !n.read).length;
+        count.textContent = unreadCount;
+
+        dropdown.innerHTML =
+          notifications.length === 0
+            ? "<p>No notifications</p>"
+            : notifications
+                .map(
+                  (notification) => `
+              <div class="notification-item ${
+                notification.read ? "" : "unread"
+              }" 
+                   onclick="handleNotificationClick('${notification._id}', '${
+                    notification.ticketId
+                  }')">
+                <p>${notification.message}</p>
+                <small>${new Date(
+                  notification.timestamp
+                ).toLocaleString()}</small>
+              </div>
+            `
+                )
+                .join("");
+      }
+
+      async function handleNotificationClick(notificationId, ticketId) {
+        try {
+          // Mark notification as read
+          await fetch(
+            `${baseUrl}/api/complaints/notifications/${notificationId}/read`,
+            {
+              method: "PUT",
+              credentials: "include", // Important: Include cookies for session
+            }
+          );
+
+          // Show the ticket details
+          const res = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: "include", // Important: Include cookies for session
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            const ticket = data.complaints.find((t) => t.ticketId === ticketId);
+            if (ticket) {
+              showTicketDetails(ticket);
+              loadNotifications(); // Refresh notifications
+            }
+          }
+        } catch (error) {
+          console.error("Error handling notification click:", error);
+        }
+      }
+
+      function showTicketDetails(ticket) {
+        // Create a modal to show ticket details
         const modal = document.createElement("div");
         modal.className =
-          "complaint-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50";
+          "modal-ticket-reply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4";
         modal.innerHTML = `
-          <div class="bg-white text-black rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+          <div class="bg-white text-black rounded-lg shadow-lg w-full max-w-md max-h-[90vh] flex flex-col">
             <div class="p-6 flex-none border-b">
               <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold">Ticket #${complaint.ticketId}</h3>
-                <button onclick="this.closest('.complaint-modal').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
+                <h3 class="text-xl font-bold">Ticket #${ticket.ticketId}</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
               </div>
             </div>
             <div class="p-6 overflow-y-auto flex-1">
-              <div class="mb-4">
-                <p class="mb-2"><strong>Status:</strong> <span class="px-2 py-1 rounded ${
-                  complaint.status === "Open"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }">${complaint.status}</span></p>
-                <p class="mb-2"><strong>Title:</strong> ${complaint.title}</p>
-                <p class="mb-4"><strong>Description:</strong> ${
-                  complaint.description
-                }</p>
-              </div>
-              <div class="space-y-4">
-                <h4 class="font-bold text-lg">Conversation History</h4>
-                <div class="space-y-3">
-                  ${complaint.replies
-                    .map(
-                      (reply) => `
-                    <div class="reply-item ${
-                      reply.sender === "agent"
-                        ? "bg-blue-50 ml-4"
-                        : "bg-gray-50"
-                    } p-4 rounded-lg">
-                      <div class="flex justify-between items-start mb-2">
-                        <span class="font-medium">${
-                          reply.sender === "agent" ? "Customer Support" : "You"
-                        }</span>
-                        <span class="text-sm text-gray-500">${new Date(
-                          reply.timestamp
-                        ).toLocaleString()}</span>
-                      </div>
-                      <p class="text-gray-700">${reply.message}</p>
-                    </div>
-                  `
-                    )
-                    .join("")}
-                </div>
+              <p class="mb-2"><strong>Status:</strong> ${ticket.status}</p>
+              <p class="mb-2"><strong>Title:</strong> ${ticket.title}</p>
+              <p class="mb-4"><strong>Description:</strong> ${
+                ticket.description
+              }</p>
+              <div class="replies-section">
+                <h4 class="font-bold mb-2">Replies:</h4>
+                ${ticket.replies
+                  .map(
+                    (reply) => `
+                  <div class="reply-item ${
+                    reply.sender === "agent" ? "agent" : ""
+                  } mb-2">
+                    <p><strong>${
+                      reply.sender === "agent" ? "Customer Support" : "You"
+                    }:</strong></p>
+                    <p>${reply.message}</p>
+                    <small>${new Date(reply.timestamp).toLocaleString()}</small>
+                  </div>
+                `
+                  )
+                  .join("")}
               </div>
             </div>
             ${
-              complaint.status === "Open"
+              ticket.status === "Open"
                 ? `
-              <div class="p-6 flex-none border-t bg-gray-50">
-                <h4 class="font-bold mb-2">Your Reply</h4>
-                <textarea 
-                  id="reply-text" 
-                  rows="3" 
-                  class="w-full border rounded p-2 mb-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                  placeholder="Type your reply here..."
-                ></textarea>
-                <div class="flex justify-end">
-                  <button 
-                    onclick="submitReply('${complaint._id}')" 
-                    class="bg-[#0B464A] text-white px-4 py-2 rounded hover:bg-[#0B464A]/90 transition-colors"
-                  >
-                    Send Reply
-                  </button>
-                </div>
+              <div class="p-6 flex-none border-t">
+                <h4 class="font-bold mb-2">Reply:</h4>
+                <textarea id="reply-text" rows="4" class="w-full border rounded p-2 mb-2" placeholder="Type your reply here..."></textarea>
+                <button onclick="submitReply('${ticket._id}')" class="bg-[#74A57F] text-white px-4 py-2 rounded">Submit Reply</button>
               </div>
             `
-                : `
-              <div class="p-4 bg-gray-100 text-center text-gray-600">
-                This complaint has been closed and cannot receive new replies
-              </div>
-            `
+                : ""
             }
           </div>
         `;
         document.body.appendChild(modal);
       }
 
-      // Function to submit reply
-      async function submitReply(complaintId) {
-        const replyText = document.getElementById("reply-text").value.trim();
-        if (!replyText) {
-          alert("Please enter a reply message");
-          return;
-        }
+      async function submitReply(ticketId) {
+        const replyText = document.getElementById("reply-text").value;
+        if (!replyText) return;
 
         try {
-          const response = await fetch(
-            `${baseUrl}/api/complaints/update/${complaintId}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({
-                reply: replyText,
-                sender: "user",
-              }),
-            }
-          );
+          // First check if the complaint is still open
+          const checkRes = await fetch(`${baseUrl}/api/complaints/all`, {
+            credentials: "include",
+          });
+          const checkData = await checkRes.json();
 
-          const data = await response.json();
-          if (data.success) {
-            // Refresh the complaint modal with updated data
-            const complaintResponse = await fetch(
-              `${baseUrl}/api/complaints/all`,
+          if (checkData.success) {
+            const ticket = checkData.complaints.find((t) => t._id === ticketId);
+            if (!ticket || ticket.status !== "Open") {
+              alert("Cannot reply to a resolved complaint");
+              return;
+            }
+
+            const res = await fetch(
+              `${baseUrl}/api/complaints/update/${ticketId}`,
               {
-                credentials: "include",
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  reply: replyText,
+                  sender: "user", // Always send as user
+                }),
               }
             );
-            const complaintsData = await complaintResponse.json();
 
-            if (complaintsData.success) {
-              const updatedComplaint = complaintsData.complaints.find(
-                (c) => c._id === complaintId
-              );
-              if (updatedComplaint) {
-                showComplaintModal(updatedComplaint);
+            const data = await res.json();
+            if (data.success) {
+              alert("Reply submitted successfully");
+              // Remove the modal
+              const modal = document.querySelector(".modal-ticket-reply");
+              if (modal) {
+                modal.remove();
               }
-            }
 
-            // Clear the reply text
-            document.getElementById("reply-text").value = "";
-          } else {
-            alert(data.message || "Failed to submit reply");
+              // Refresh notifications
+              loadNotifications();
+            } else {
+              alert(
+                "Failed to submit reply: " + (data.message || "Unknown error")
+              );
+            }
           }
         } catch (error) {
           console.error("Error submitting reply:", error);
           alert("Failed to submit reply. Please try again.");
         }
       }
-      //Function to update Notifications
-      function updateNotificationUI(notifications, errorMessage = null) {
-        const listEl = document.getElementById("notification-list");
-        const badgeEl = document.getElementById("notification-count");
 
-        // Clear / show error
-        if (errorMessage) {
-          listEl.innerHTML = `<p class="p-2 text-red-500">${errorMessage}</p>`;
-        } else if (notifications.length === 0) {
-          listEl.innerHTML = `<p class="p-2 text-gray-500">No notifications</p>`;
-        } else {
-          listEl.innerHTML = notifications
-            .map(
-              (n) => `
-        <div class="notification-item ${
-          n.read ? "" : "unread"
-        } flex justify-between items-start p-2 cursor-pointer"
-             onclick="handleNotificationClick('${n._id}','${n.ticketId}')">
-          <div>
-            <p class="text-gray-900">${n.message}</p>
-            <small class="text-gray-500">${new Date(
-              n.timestamp
-            ).toLocaleString()}</small>
-          </div>
-          ${
-            n.read
-              ? ""
-              : '<span class="inline-block w-2 h-2 bg-red-500 rounded-full mt-1"></span>'
+      // Load notifications periodically
+      setInterval(loadNotifications, 30000); // Every 30 seconds
+      loadNotifications(); // Initial load
+
+      // Add click handler for notification bell
+      document
+        .getElementById("notification-btn")
+        .addEventListener("click", () => {
+          const dropdown = document.getElementById("notification-dropdown");
+          dropdown.classList.toggle("hidden");
+          if (!dropdown.classList.contains("hidden")) {
+            loadNotifications(); // Refresh notifications when dropdown is opened
           }
-        </div>
-      `
-            )
-            .join("");
-        }
-
-        // Update badge count
-        const unreadCount = notifications.filter((n) => !n.read).length;
-        if (badgeEl) {
-          badgeEl.textContent = unreadCount;
-          badgeEl.classList.toggle("hidden", unreadCount === 0);
-        }
-      }
-      // Function to load notifications
-      async function loadNotifications() {
-        try {
-          console.log("Loading notifications...");
-          const receiverId = localStorage.getItem("receiverId");
-          const nponame = localStorage.getItem("receivernponame");
-
-          if (!receiverId || !nponame) {
-            console.error("No receiver ID or NPO name found in localStorage");
-            updateNotificationUI([], "Please log in to view notifications");
-            return;
-          }
-
-          let allNotifications = [];
-
-          try {
-            // Fetch complaints and support replies first
-            const complaintsResponse = await fetch(
-              `${baseUrl}/api/complaints/all`,
-              {
-                method: "GET",
-                credentials: "include",
-              }
-            );
-
-            if (complaintsResponse.ok) {
-              const complaintsData = await complaintsResponse.json();
-              console.log("Complaints data:", complaintsData);
-
-              // Add support replies as notifications
-              if (
-                complaintsData.success &&
-                Array.isArray(complaintsData.complaints)
-              ) {
-                const supportReplies = complaintsData.complaints
-                  .filter(
-                    (c) =>
-                      c.userType === "receiver" &&
-                      // if userId is an ObjectId, compare strings:
-                      (c.userId._id || c.userId).toString() === receiverId
-                  )
-                  .flatMap((complaint) =>
-                    complaint.replies
-                      .filter((reply) => reply.sender === "agent")
-                      .map((reply) => ({
-                        _id: reply._id,
-                        message: `Support replied to ticket #${complaint.ticketId}: ${reply.message}`,
-                        timestamp: reply.timestamp,
-                        read: false,
-                        ticketId: complaint.ticketId,
-                      }))
-                  );
-
-                allNotifications = allNotifications.concat(supportReplies);
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching complaints:", error);
-          }
-          // Sort notifications by timestamp (newest first)
-          allNotifications.sort(
-            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-          );
-
-          // Update the notification UI
-          updateNotificationUI(allNotifications);
-
-          // Update notification count badge
-          const unreadCount = allNotifications.filter((n) => !n.read).length;
-          const notificationCount =
-            document.getElementById("notification-count");
-          if (notificationCount) {
-            notificationCount.textContent = unreadCount;
-            notificationCount.classList.toggle("hidden", unreadCount === 0);
-          }
-        } catch (error) {
-          console.error("Error loading notifications:", error);
-          updateNotificationUI([], "Failed to load notifications");
-        }
-      }
-      const bellBtn = document.getElementById("notification-btn");
-      const dropdown = document.getElementById("notification-dropdown");
-
-      bellBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle("hidden");
-        if (!dropdown.classList.contains("hidden")) {
-          loadNotifications();
-        }
-      });
-
-      // close when clicking anywhere else
-      document.addEventListener("click", () => {
-        dropdown.classList.add("hidden");
-      });
-
-      // Update handleNotificationClick function
-      async function handleNotificationClick(notificationId, ticketId) {
-        try {
-          if (!notificationId || !ticketId) {
-            console.error("Missing notification or ticket ID");
-            return;
-          }
-
-          // Fetch the complaint details
-          const response = await fetch(`${baseUrl}/api/complaints/all`, {
-            credentials: "include",
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch complaint details");
-          }
-
-          const data = await response.json();
-          if (data.success) {
-            const complaint = data.complaints.find(
-              (c) => c.ticketId === ticketId
-            );
-            if (complaint) {
-              // Show the complaint modal
-              showComplaintModal(complaint);
-
-              // Mark notification as read
-              try {
-                await fetch(
-                  `${baseUrl}/api/complaints/notifications/${notificationId}/read`,
-                  {
-                    method: "PUT",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                  }
-                );
-
-                // Refresh notifications to update read status
-                await loadNotifications();
-              } catch (error) {
-                console.error("Error marking notification as read:", error);
-              }
-            } else {
-              console.error("Complaint not found:", ticketId);
-            }
-          }
-        } catch (error) {
-          console.error("Error handling notification click:", error);
-          alert("Failed to load complaint details. Please try again.");
-        }
-      }
+        });
     </script>
     <script>
       // Function to mark donation as collected and show review modal

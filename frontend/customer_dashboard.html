@@ -155,7 +155,7 @@
 </head>
 <body>
   <div class="header">
-    Customer Service Dashboard
+    <span style="font-weight: 700; letter-spacing: 0.1em;">CUSTOMER SERVICE DASHBOARD</span>
     <div class="notification-bell" id="notification-btn">
       🔔
       <span class="notification-count" id="notification-count">0</span>
@@ -163,12 +163,11 @@
     <div class="notification-dropdown" id="notification-dropdown">
       <!-- Notifications will be inserted here -->
     </div>
-    <img src="profile.jpg" alt="Profile" class="profile-pic" id="profile-pic">
   </div>
   <div class="main-container">
     <div class="sidebar">
       <div class="sidebar-title">Aahar Link</div>
-      <div class="sidebar-subtitle">Customer Service Dashboard</div>
+      <button class="button" onclick="window.location.href='home.html'">🏠 Home</button>
       <button class="button" onclick="loadTickets('Open')">View Open Complaints</button>
       <button class="button" onclick="loadTickets('Resolved')">View Resolved Complaints</button>
       <div id="ticket-list"></div>

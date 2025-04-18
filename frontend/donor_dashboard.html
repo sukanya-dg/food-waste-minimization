@@ -58,16 +58,53 @@
       .reply-item.agent {
         background: #e0c1a3;
       }
+      .header {
+        background: #74A57F;
+        padding: 20px;
+        text-align: center;
+        font-size: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+      
+      .sidebar-spacing {
+        margin: 20px 0;
+      }
+      
+      .home-button {
+        width: 100%;
+        padding: 10px;
+        background:#127536;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 15px;
+      }
+      
+      .home-button:hover {
+        background: #5d8a67;
+      }
     </style>
   </head>
   <body class="flex bg-opacity text-white">
     <!-- Sidebar -->
     <aside class="sidebar text-white p-5 min-h-screen">
       <h2 class="text-3xl font-bold">Aahar Link</h2>
-      <p class="text-sm mb-5">Donor Portal</p>
+      <div class="sidebar-spacing"></div>
       <nav>
         <ul>
-          <li class="py-2"><a href="#" class="block">🏠 Dashboard</a></li>
+          <li class="py-2">
+            <button onclick="window.location.href='home.html'" class="home-button">
+              🏠 Home
+            </button>
+          </li>
           <li class="py-2"><a href="#" class="block" id="reviews-link">⭐ Reviews</a></li>
           <!-- Logout Button -->
           <li class="py-96 mt-4"></li>
@@ -97,38 +134,22 @@
 
     <!-- Main Content -->
     <main class="flex-1 p-6">
-      <header class="flex justify-between items-center mb-5">
-        <h1 class="text-2xl font-bold">Donor Dashboard</h1>
+      <header class="flex justify-between items-center mb-5 bg-[#74A57F] p-4">
+        <h1 class="text-2xl font-bold text-white text-center flex-1 tracking-wider">DONOR DASHBOARD</h1>
         <div class="flex items-center gap-4">
-          <div
-            class="relative text-red-500 text-xl cursor-pointer"
-            id="notification-btn"
-          >
+          <div class="relative text-red-500 text-xl cursor-pointer" id="notification-btn">
             🔔
-            <span
-              id="notification-count"
-              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full"
-            >
+            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
               0
             </span>
-
             <!-- Notifications Dropdown -->
-            <div
-              id="notification-dropdown"
-              class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm"
-            >
+            <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm">
               <p class="text-gray-500">Loading...</p>
             </div>
           </div>
-
-          <button
-            id="raiseComplaintBtn"
-            class="bg-green-700 text-white text-sm px-3 py-1 rounded hover:bg-yellow-600 transition"
-          >
+          <button id="raiseComplaintBtn" class="bg-green-700 text-white text-sm px-3 py-1 rounded hover:bg-yellow-600 transition">
             📝 Raise Complaint
           </button>
-
-          <span class="bg-[#74A57F] text-white px-3 py-1 rounded-full">D</span>
         </div>
       </header>
 

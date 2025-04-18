@@ -9,7 +9,7 @@ async function getLaunchOptions() {
   return {
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: puppeteer.executablePath(), // ensures proper chromium path on Render
+    
   };
 }
 

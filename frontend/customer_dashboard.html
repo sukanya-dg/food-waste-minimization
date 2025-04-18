@@ -12,8 +12,9 @@
       background: #E4C5AF;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh;
     }
+
     .header {
       background: #8C4A3E;
       padding: 20px;
@@ -24,85 +25,15 @@
       justify-content: center;
       align-items: center;
       position: relative;
+      flex-wrap: wrap;
     }
-    .profile-pic {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      position: absolute;
-      right: 20px;
-    }
-    .main-container {
-      display: flex;
-      flex: 1;
-    }
-    .sidebar {
-      width: 220px;
-      background: #5C3D31;
-      color: white;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      justify-content: space-between;
-      text-align: center;
-    }
-    .sidebar-title {
-      font-size: 1.25rem;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .sidebar-subtitle {
-      font-size: 0.875rem;
-      margin-bottom: 20px;
-      color: #F6E6D8;
-    }
-    .button {
-      padding: 10px 20px;
-      background: #A6655F;
-      border: none;
-      cursor: pointer;
-      color: white;
-      text-align: center;
-      border-radius: 5px;
-    }
-    .button:hover {
-      background: #8C4A3E;
-    }
-    .content {
-      flex: 1;
-      padding: 20px;
-      background: #F6E6D8;
-    }
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-    .ticket-item {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-      cursor: pointer;
-      font-size: 0.875rem;
-    }
-    .ticket-item:hover {
-      background: #E0C1A3;
-    }
-    .logout-button {
-      align-self: center;
-      margin-top: auto;
-    }
-    .reply-section {
-      display: none;
-      margin-top: 20px;
-    }
+
     .notification-bell {
       position: relative;
       cursor: pointer;
+      margin-left: 10px;
     }
+
     .notification-count {
       position: absolute;
       top: -8px;
@@ -113,6 +44,7 @@
       padding: 2px 6px;
       font-size: 12px;
     }
+
     .notification-dropdown {
       display: none;
       position: absolute;
@@ -126,6 +58,7 @@
       overflow-y: auto;
       z-index: 1000;
     }
+
     .notification-item {
       padding: 10px;
       border-bottom: 1px solid #ddd;
@@ -133,27 +66,211 @@
       color: #333;
       font-size: 0.875rem;
     }
+
     .notification-item:hover {
       background: #f5f5f5;
     }
-    .notification-item.unread {
-      background: #f0f0f0;
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      min-height: 0;
     }
-    .notification-item p {
-      margin: 0 0 5px 0;
-      color: #333;
+
+    .sidebar {
+      width: 220px;
+      background: #5C3D31;
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+      position: fixed;
+      height: 100vh;
+      left: 0;
+      top: 0;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: #5C3D31;
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .sidebar-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      background: #A6655F;
+      border: none;
+      cursor: pointer;
+      color: white;
+      border-radius: 5px;
+    }
+
+    .button:hover {
+      background: #8C4A3E;
+    }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+      background: #F6E6D8;
+      overflow-y: auto;
+      margin-left: 220px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 800px;
+      overflow-x: auto;
+    }
+
+    .ticket-item {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
       font-size: 0.875rem;
     }
-    .notification-item small {
-      color: #666;
-      font-size: 0.75rem;
+
+    .ticket-item:hover {
+      background: #E0C1A3;
     }
-    .notification-item strong {
-      color: #8C4A3E;
+
+    .logout-button {
+      margin-top: auto;
+    }
+
+    .reply-section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .sidebar {
+        transform: translateX(-100%);
+        width: 250px;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .content {
+        margin-left: 0;
+        padding: 15px;
+      }
+
+      .main-container {
+        flex-direction: column;
+      }
+
+      .button {
+        flex: 1 1 40%;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+      }
+
+      .sidebar-title {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 10px;
+        font-size: 1.2rem;
+      }
+
+      .notification-dropdown {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 100%;
+        margin-top: 10px;
+        width: 90%;
+      }
+
+      textarea#reply-text {
+        width: 100%;
+      }
+
+      .card {
+        padding: 12px;
+        max-width: 100%;
+      }
+
+      #ticket-details {
+        max-width: 100%;
+        overflow-x: auto;
+      }
+
+      #reply-text {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      #status {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .button {
+        flex: 1 1 100%;
+        font-size: 0.85rem;
+      }
+
+      .sidebar {
+        padding: 10px;
+      }
+
+      .content {
+        padding: 10px;
+      }
+
+      .header {
+        font-size: 1rem;
+      }
+
+      .card {
+        padding: 10px;
+      }
     }
   </style>
 </head>
 <body>
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    ☰
+  </button>
   <div class="header">
     <span style="font-weight: 700; letter-spacing: 0.1em;">CUSTOMER SERVICE DASHBOARD</span>
     <div class="notification-bell" id="notification-btn">
@@ -191,6 +308,20 @@
     </div>
   </div>
   <script>
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.classList.toggle('active');
+    }
+
+    document.addEventListener('click', function(e) {
+      const sidebar = document.querySelector('.sidebar');
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (!sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        sidebar.classList.remove('active');
+      }
+    });
+
     const baseUrl = window.location.origin; // Set your base API URL
 
     let allComplaints = [];
@@ -384,13 +515,6 @@
       e.stopPropagation();
       const dropdown = document.getElementById('notification-dropdown');
       dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('#notification-btn')) {
-        document.getElementById('notification-dropdown').style.display = 'none';
-      }
     });
 
     // Load notifications periodically

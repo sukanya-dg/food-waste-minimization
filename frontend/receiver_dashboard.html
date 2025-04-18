@@ -10,34 +10,57 @@
       const baseUrl = window.location.origin;
     </script>
     <style>
+      /* Base Styles */
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: row;
+      }
+
       .sidebar {
         width: 250px;
         background-color: #0b464a;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
       }
+
+      main {
+        margin-left: 250px;
+        width: calc(100% - 250px);
+        min-height: 100vh;
+      }
+
       .bg-opacity {
         background-color: rgba(1, 73, 78, 0.6);
       }
+
       .notification-bell {
         position: absolute;
         right: 70px;
         cursor: pointer;
         font-size: 24px;
       }
+
       .notification-item {
         padding: 10px;
         border-bottom: 1px solid #ddd;
         cursor: pointer;
         transition: background-color 0.2s;
       }
+
       .notification-item:hover {
         background-color: #f8f8f8;
       }
+
       .notification-item.unread {
         background-color: #e0c1a3;
       }
+
       .notification-item.unread:hover {
         background-color: #d4b494;
       }
+
       .notification-count {
         position: absolute;
         top: -8px;
@@ -50,21 +73,134 @@
         min-width: 18px;
         text-align: center;
       }
+
       .replies-section {
         margin-top: 20px;
         padding: 10px;
         background: #f6e6d8;
         border-radius: 8px;
       }
+
       .reply-item {
         margin-bottom: 10px;
         padding: 10px;
         background: white;
         border-radius: 5px;
       }
+
       .reply-item.agent {
         background: #e0c1a3;
       }
+
+      /* Mobile Menu Button */
+      .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: #0b464a;
+        border: none;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 1024px) {
+        .sidebar {
+          width: 200px;
+        }
+        
+        main {
+          margin-left: 200px;
+          width: calc(100% - 200px);
+        }
+        
+        .notification-dropdown {
+          width: 250px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: 100%;
+          position: fixed;
+          left: -100%;
+          top: 0;
+          height: 100vh;
+          z-index: 999;
+          transition: left 0.3s ease;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        main {
+          margin-left: 0;
+          width: 100%;
+        }
+
+        .header {
+          padding: 15px;
+          font-size: 1.2rem;
+        }
+
+        .notification-bell {
+          right: 20px;
+        }
+
+        .notification-dropdown {
+          width: 90%;
+          max-width: 300px;
+          right: 10px;
+        }
+
+        .grid-cols-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .header {
+          padding: 10px;
+          font-size: 1rem;
+        }
+
+        .notification-bell {
+          font-size: 20px;
+          right: 15px;
+        }
+
+        .notification-dropdown {
+          width: 95%;
+          right: 5px;
+        }
+
+        .bg-white {
+          padding: 15px;
+        }
+
+        h2 {
+          font-size: 1.1rem;
+        }
+
+        p {
+          font-size: 0.9rem;
+        }
+      }
+
+      /* Existing Modal Styles */
       .modal {
         display: none;
         position: fixed;
@@ -122,6 +258,22 @@
         transition: all 0.3s ease;
       }
 
+      .home-button {
+        width: 100%;
+        padding: 10px;
+        background: #075261;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 15px;
+      }
+      
+      .home-button:hover {
+        background: #064751;
+      }
+
       .rating-btn.selected {
         background-color: #4caf50;
         color: white;
@@ -167,7 +319,6 @@
         background-color: #d4b494;
       }
 
-      /* Update notification dropdown styles */
       .notification-bell-container {
         position: relative;
         display: inline-block;
@@ -198,92 +349,37 @@
         cursor: pointer;
         transition: background-color 0.2s;
       }
-
-      .notification-item:last-child {
-        border-bottom: none;
-      }
-
-      .notification-item:hover {
-        background-color: #f3f4f6;
-      }
-
-      .notification-item.unread {
-        background-color: #e0c1a3;
-      }
-
-      .notification-item.unread:hover {
-        background-color: #d4b494;
-      }
-
-      #notification-count {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background-color: red;
-        color: white;
-        border-radius: 50%;
-        padding: 2px 6px;
-        font-size: 12px;
-        min-width: 18px;
-        text-align: center;
-      }
-
-      #notification-count.hidden {
-        display: none;
-      }
-
-      .header {
-        background: #0b464a;
-        padding: 20px;
-        text-align: center;
-        font-size: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-      }
-      
-      .sidebar-spacing {
-        margin: 20px 0;
-      }
-      
-      .home-button {
-        width: 100%;
-        padding: 10px;
-        background: #075261;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        margin-bottom: 15px;
-      }
-      
-      .home-button:hover {
-        background: #064751;
-      }
     </style>
   </head>
   <body class="flex bg-opacity text-white">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+      ☰
+    </button>
+
     <!-- Sidebar -->
     <aside class="sidebar text-white p-5 min-h-screen">
       <h2 class="text-3xl font-bold">Aahar Link</h2>
       <div class="sidebar-spacing"></div>
-      <button onclick="window.location.href='home.html'" class="home-button">
-        🏠 Home
-      </button>
       <nav>
         <ul>
-          
+          <li class="py-2">
+            <button
+              onclick="window.location.href='home.html'"
+              class="home-button"
+            >
+              🏠 Home
+            </button>
+          </li>
+          <li class="py-2">
+            <a href="#" class="block" id="reviews-link">⭐ Reviews</a>
+          </li>
           <!-- Logout Button -->
           <li class="py-96 mt-4"></li>
           <div class="mt-auto flex justify-center pb-4">
             <button
               id="logout-btn"
-              class="bg-blue-500 text-white px-4 py-2 rounded w-32"
+              class="bg-red-500 text-white px-4 py-2 rounded w-32"
             >
               Logout
             </button>
@@ -291,6 +387,13 @@
         </ul>
       </nav>
     </aside>
+
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('active');
+      }
+    </script>
 
     <script>
       document
@@ -355,40 +458,44 @@
       <!-- Available Food Listings -->
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
-        <table id="food-listings" class="w-full text-left border-collapse">
-          <thead>
-            <tr>
-              <th class="border-b p-2">Title</th>
-              <th class="border-b p-2">Type</th>
-              <th class="border-b p-2">Quantity</th>
-              <th class="border-b p-2">Expiry Date</th>
-              <th class="border-b p-2">Restaurant</th>
-              <th class="border-b p-2">Status</th>
-              <th class="border-b p-2">Request</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Listings will be dynamically inserted here -->
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table id="food-listings" class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr>
+                <th class="border-b p-2 w-1/7">Title</th>
+                <th class="border-b p-2 w-1/7">Type</th>
+                <th class="border-b p-2 w-1/7">Quantity</th>
+                <th class="border-b p-2 w-1/7">Expiry Date</th>
+                <th class="border-b p-2 w-1/7">Restaurant</th>
+                <th class="border-b p-2 w-1/7">Status</th>
+                <th class="border-b p-2 w-1/7">Request</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Listings will be dynamically inserted here -->
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Requested Food Section -->
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Your Requests</h2>
-        <table id="request-list" class="w-full text-left border-collapse">
-          <thead>
-            <tr>
-              <th class="border-b p-2">Food Item</th>
-              <th class="border-b p-2">Restaurant</th>
-              <th class="border-b p-2">Status</th>
-              <th class="border-b p-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Requests will be dynamically inserted here -->
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table id="request-list" class="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr>
+                <th class="border-b p-2 w-1/4">Food Item</th>
+                <th class="border-b p-2 w-1/4">Restaurant</th>
+                <th class="border-b p-2 w-1/4">Status</th>
+                <th class="border-b p-2 w-1/4">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Requests will be dynamically inserted here -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
 

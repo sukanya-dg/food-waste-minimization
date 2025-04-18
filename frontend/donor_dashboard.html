@@ -6,19 +6,39 @@
     <title>Donor Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      /* Base Styles */
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: row;
+      }
+
       .sidebar {
         width: 250px;
         background-color: #74a57f;
+        transition: all 0.3s ease;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
       }
+
+      main {
+        margin-left: 250px;
+        width: calc(100% - 250px);
+        min-height: 100vh;
+      }
+
       .bg-opacity {
         background-color: rgba(38, 63, 43, 0.6);
       }
+
       .notification-bell {
         position: absolute;
         right: 70px;
         cursor: pointer;
         font-size: 24px;
       }
+
       .notification-dropdown {
         display: none;
         position: absolute;
@@ -31,33 +51,41 @@
         width: 300px;
         max-height: 400px;
         overflow-y: auto;
+        z-index: 1000;
       }
+
       .notification-item {
         padding: 10px;
         border-bottom: 1px solid #ddd;
         cursor: pointer;
       }
+
       .notification-item:hover {
         background: #e0c1a3;
       }
+
       .notification-item.unread {
         background: #f6e6d8;
       }
+
       .replies-section {
         margin-top: 20px;
         padding: 10px;
         background: #f6e6d8;
         border-radius: 8px;
       }
+
       .reply-item {
         margin-bottom: 10px;
         padding: 10px;
         background: white;
         border-radius: 5px;
       }
+
       .reply-item.agent {
         background: #e0c1a3;
       }
+
       .header {
         background: #74a57f;
         padding: 20px;
@@ -91,9 +119,131 @@
       .home-button:hover {
         background: #5d8a67;
       }
+
+      /* Mobile Menu Button */
+      .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: #74a57f;
+        border: none;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 1024px) {
+        .sidebar {
+          width: 200px;
+        }
+        
+        main {
+          margin-left: 200px;
+          width: calc(100% - 200px);
+        }
+        
+        .notification-dropdown {
+          width: 250px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: 100%;
+          position: fixed;
+          left: -100%;
+          top: 0;
+          height: 100vh;
+          z-index: 999;
+          transition: left 0.3s ease;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        main {
+          margin-left: 0;
+          width: 100%;
+        }
+
+        .header {
+          padding: 15px;
+          font-size: 1.2rem;
+        }
+
+        .notification-bell {
+          right: 20px;
+        }
+
+        .notification-dropdown {
+          width: 90%;
+          max-width: 300px;
+          right: 10px;
+        }
+
+        #food-form {
+          grid-template-columns: 1fr;
+        }
+
+        .grid-cols-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .header {
+          padding: 10px;
+          font-size: 1rem;
+        }
+
+        .notification-bell {
+          font-size: 20px;
+          right: 15px;
+        }
+
+        .notification-dropdown {
+          width: 95%;
+          right: 5px;
+        }
+
+        #raiseComplaintBtn {
+          padding: 5px 10px;
+          font-size: 0.875rem;
+        }
+
+        .bg-white {
+          padding: 15px;
+        }
+
+        h2 {
+          font-size: 1.1rem;
+        }
+
+        p {
+          font-size: 0.9rem;
+        }
+      }
     </style>
   </head>
   <body class="flex bg-opacity text-white">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+      ☰
+    </button>
+
     <!-- Sidebar -->
     <aside class="sidebar text-white p-5 min-h-screen">
       <h2 class="text-3xl font-bold">Aahar Link</h2>
@@ -126,6 +276,11 @@
     </aside>
 
     <script>
+      function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('active');
+      }
+
       document
         .getElementById("logout-btn")
         .addEventListener("click", function () {
@@ -254,22 +409,24 @@
       <!-- Available Food Listings -->
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
-        <table id="food-listings" class="w-full text-left border-collapse">
-          <thead>
-            <tr>
-              <th class="border-b p-2">Title</th>
-              <th class="border-b p-2">Type</th>
-              <th class="border-b p-2">Quantity</th>
-              <th class="border-b p-2">Expiry Date</th>
-              <th class="border-b p-2">Status</th>
-              <th class="border-b p-2">Requested By</th>
-              <th class="border-b p-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Listings will be dynamically inserted here -->
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table id="food-listings" class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr>
+                <th class="border-b p-2 w-1/6">Title</th>
+                <th class="border-b p-2 w-1/6">Type</th>
+                <th class="border-b p-2 w-1/6">Quantity</th>
+                <th class="border-b p-2 w-1/6">Expiry Date</th>
+                <th class="border-b p-2 w-1/6">Status</th>
+                <th class="border-b p-2 w-1/6">Requested By</th>
+                <th class="border-b p-2 w-1/6">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Listings will be dynamically inserted here -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
     <!-- FSSAI License Modal -->

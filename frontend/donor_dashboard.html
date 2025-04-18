@@ -164,10 +164,7 @@
           <strong>Premises Address:</strong>
           <span id="address">Verify First</span>
         </p>
-        <p>
-          <strong>Phone Number:</strong>
-          <span id="phone">Loading...</span>
-        </p>
+        
 
         <!-- Verification Button -->
         <button
@@ -820,7 +817,7 @@
               companyNameEl.textContent = data.companyname || "Unknown Donor";
               addressEl.textContent = data.address || "Verify First";
               localStorage.setItem("donorcompanyname", data.companyname || "");
-              const phoneEl = document.getElementById("phone");
+              
 
               // Inside fetchDonorDetails function, after setting companyNameEl and addressEl
               phoneEl.textContent = data.phone || "Not Available";

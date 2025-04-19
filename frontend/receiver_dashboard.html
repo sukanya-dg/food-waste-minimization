@@ -1318,7 +1318,7 @@
         complaintModal.classList.add("hidden");
       });
 
-      submitComplaintBtn.addEventListener("click", () => {
+      submitComplaintBtn.addEventListener("click", async () => {
         const title = document.getElementById("complaint-title").value.trim();
         const desc = document.getElementById("complaint-desc").value.trim();
         const ticketId = document.getElementById("ticket-id").textContent;
@@ -1335,30 +1335,30 @@
           createdAt: new Date().toISOString(),
         };
 
-        console.log("Complaint Submitted:", complaintData);
-
-        // Send complaint to backend
-        fetch(`${baseUrl}/api/complaints/raise`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Important: Include cookies for session
-          body: JSON.stringify(complaintData),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              alert(`Complaint submitted! Your ticket number is ${ticketId}`);
-              complaintModal.classList.add("hidden");
-            } else {
-              alert("Failed to submit complaint. Try again.");
-            }
-          })
-          .catch((err) => {
-            console.error("Error submitting complaint:", err);
-            alert("Something went wrong.");
+        try {
+          const response = await fetch("/api/complaints/raise", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(complaintData),
           });
+
+          const data = await response.json();
+
+          if (data.success) {
+            alert(`Complaint submitted! Your ticket number is ${ticketId}`);
+            complaintModal.classList.add("hidden");
+            // Refresh notifications after submitting complaint
+            await loadNotifications();
+          } else {
+            alert(data.message || "Failed to submit complaint. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error submitting complaint:", error);
+          alert("Something went wrong. Please try again.");
+        }
       });
 
       function generateTicketID() {
@@ -1385,18 +1385,36 @@
 
     <!-- Notification handling script -->
     <script>
-      // Remove baseUrl declaration since it's now at the top
       let notifications = [];
+      const notificationBell = document.getElementById("notification-btn");
+      const notificationDropdown = document.getElementById("notification-dropdown");
+      let isDropdownVisible = false;
+
+      // Toggle notification dropdown
+      notificationBell.addEventListener("click", () => {
+        isDropdownVisible = !isDropdownVisible;
+        notificationDropdown.classList.toggle("hidden");
+        if (isDropdownVisible) {
+          loadNotifications();
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (event) => {
+        if (!notificationBell.contains(event.target) && !notificationDropdown.contains(event.target)) {
+          isDropdownVisible = false;
+          notificationDropdown.classList.add("hidden");
+        }
+      });
 
       async function loadNotifications() {
         try {
-          console.log("Loading notifications...");
-          const res = await fetch(`${baseUrl}/api/complaints/notifications`, {
-            credentials: "include", // Important: Include cookies for session
+          const response = await fetch("/api/complaints/notifications", {
+            credentials: "include"
           });
-          const data = await res.json();
-          console.log("Notifications response:", data);
-
+          
+          const data = await response.json();
+          
           if (data.success) {
             notifications = data.notifications;
             updateNotificationUI();
@@ -1414,106 +1432,105 @@
 
         // Update notification count
         const unreadCount = notifications.filter((n) => !n.read).length;
-        count.textContent = unreadCount;
+        count.textContent = unreadCount || "";
+        count.style.display = unreadCount ? "block" : "none";
 
-        dropdown.innerHTML =
-          notifications.length === 0
-            ? "<p>No notifications</p>"
-            : notifications
-                .map(
-                  (notification) => `
-              <div class="notification-item ${
-                notification.read ? "" : "unread"
-              }" 
-                   onclick="handleNotificationClick('${notification._id}', '${
-                    notification.ticketId
-                  }')">
-                <p>${notification.message}</p>
-                <small>${new Date(
-                  notification.timestamp
-                ).toLocaleString()}</small>
+        // Update dropdown content
+        if (notifications.length === 0) {
+          dropdown.innerHTML = "<div class='p-4 text-center text-gray-500'>No notifications</div>";
+        } else {
+          dropdown.innerHTML = notifications
+            .map((notification) => `
+              <div class="notification-item ${notification.read ? "" : "unread"}" 
+                   onclick="handleNotificationClick('${notification._id}', '${notification.ticketId}')">
+                <p class="text-sm font-medium">${notification.message}</p>
+                <small class="text-xs text-gray-500">${new Date(notification.timestamp).toLocaleString()}</small>
               </div>
-            `
-                )
-                .join("");
+            `)
+            .join("");
+        }
       }
 
       async function handleNotificationClick(notificationId, ticketId) {
         try {
           // Mark notification as read
-          await fetch(
-            `${baseUrl}/api/complaints/notifications/${notificationId}/read`,
+          const readResponse = await fetch(
+            `/api/complaints/notifications/${notificationId}/read`,
             {
               method: "PUT",
-              credentials: "include", // Important: Include cookies for session
+              credentials: "include"
             }
           );
 
-          // Show the ticket details
-          const res = await fetch(`${baseUrl}/api/complaints/all`, {
-            credentials: "include", // Important: Include cookies for session
+          if (!readResponse.ok) {
+            throw new Error("Failed to mark notification as read");
+          }
+
+          // Get complaint details
+          const complaintsResponse = await fetch("/api/complaints/all", {
+            credentials: "include"
           });
-          const data = await res.json();
+          
+          const data = await complaintsResponse.json();
 
           if (data.success) {
             const ticket = data.complaints.find((t) => t.ticketId === ticketId);
             if (ticket) {
               showTicketDetails(ticket);
-              loadNotifications(); // Refresh notifications
+              await loadNotifications(); // Refresh notifications
             }
           }
         } catch (error) {
-          console.error("Error handling notification click:", error);
+          console.error("Error handling notification:", error);
         }
       }
 
       function showTicketDetails(ticket) {
-        // Create a modal to show ticket details
+        // Remove any existing ticket modal
+        const existingModal = document.querySelector('.modal-ticket-reply');
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        // Create modal element
         const modal = document.createElement("div");
-        modal.className =
-          "modal-ticket-reply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4";
+        modal.className = "modal-ticket-reply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50";
         modal.innerHTML = `
           <div class="bg-white text-black rounded-lg shadow-lg w-full max-w-md max-h-[90vh] flex flex-col">
             <div class="p-6 flex-none border-b">
               <div class="flex justify-between items-center">
                 <h3 class="text-xl font-bold">Ticket #${ticket.ticketId}</h3>
-                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
+                <button onclick="this.closest('.modal-ticket-reply').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
               </div>
             </div>
             <div class="p-6 overflow-y-auto flex-1">
               <p class="mb-2"><strong>Status:</strong> ${ticket.status}</p>
               <p class="mb-2"><strong>Title:</strong> ${ticket.title}</p>
-              <p class="mb-4"><strong>Description:</strong> ${
-                ticket.description
-              }</p>
+              <p class="mb-4"><strong>Description:</strong> ${ticket.description}</p>
               <div class="replies-section">
                 <h4 class="font-bold mb-2">Replies:</h4>
-                ${ticket.replies
+                ${ticket.replies ? ticket.replies
                   .map(
                     (reply) => `
-                  <div class="reply-item ${
-                    reply.sender === "agent" ? "agent" : ""
-                  } mb-2">
-                    <p><strong>${
-                      reply.sender === "agent" ? "Customer Support" : "You"
-                    }:</strong></p>
-                    <p>${reply.message}</p>
-                    <small>${new Date(reply.timestamp).toLocaleString()}</small>
-                  </div>
-                `
+                    <div class="reply-item ${reply.sender === "agent" ? "agent" : ""} mb-2">
+                      <p><strong>${reply.sender === "agent" ? "Customer Support" : "You"}:</strong></p>
+                      <p>${reply.message}</p>
+                      <small>${new Date(reply.timestamp).toLocaleString()}</small>
+                    </div>
+                  `
                   )
-                  .join("")}
+                  .join("") : '<p>No replies yet</p>'}
               </div>
             </div>
             ${
               ticket.status === "Open"
                 ? `
-              <div class="p-6 flex-none border-t">
-                <h4 class="font-bold mb-2">Reply:</h4>
-                <textarea id="reply-text" rows="4" class="w-full border rounded p-2 mb-2" placeholder="Type your reply here..."></textarea>
-                <button onclick="submitReply('${ticket._id}')" class="bg-[#0B464A] text-white px-4 py-2 rounded">Submit Reply</button>
-              </div>
-            `
+                <div class="p-6 flex-none border-t">
+                  <h4 class="font-bold mb-2">Reply:</h4>
+                  <textarea id="reply-text" rows="4" class="w-full border rounded p-2 mb-2" placeholder="Type your reply here..."></textarea>
+                  <button onclick="submitReply('${ticket._id}')" class="bg-[#0B464A] text-white px-4 py-2 rounded hover:bg-[#0a3f43]">Submit Reply</button>
+                </div>
+              `
                 : ""
             }
           </div>
@@ -1522,12 +1539,15 @@
       }
 
       async function submitReply(ticketId) {
-        const replyText = document.getElementById("reply-text").value;
-        if (!replyText) return;
+        const replyText = document.getElementById("reply-text").value.trim();
+        if (!replyText) {
+          alert("Please enter a reply");
+          return;
+        }
 
         try {
-          // First check if the complaint is still open
-          const checkRes = await fetch(`${baseUrl}/api/complaints/all`, {
+          // Check if the complaint is still open
+          const checkRes = await fetch("/api/complaints/all", {
             credentials: "include",
           });
           const checkData = await checkRes.json();
@@ -1539,21 +1559,22 @@
               return;
             }
 
-            const res = await fetch(
-              `${baseUrl}/api/complaints/update/${ticketId}`,
+            const response = await fetch(
+              `/api/complaints/update/${ticketId}`,
               {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify({
                   reply: replyText,
-                  sender: "user", // Always send as user
+                  sender: "user"
                 }),
               }
             );
 
-            const data = await res.json();
+            const data = await response.json();
             if (data.success) {
               alert("Reply submitted successfully");
               // Remove the modal
@@ -1561,13 +1582,10 @@
               if (modal) {
                 modal.remove();
               }
-
               // Refresh notifications
-              loadNotifications();
+              await loadNotifications();
             } else {
-              alert(
-                "Failed to submit reply: " + (data.message || "Unknown error")
-              );
+              throw new Error(data.message || "Failed to submit reply");
             }
           }
         } catch (error) {
@@ -1576,20 +1594,8 @@
         }
       }
 
-      // Load notifications periodically
-      setInterval(loadNotifications, 30000); // Every 30 seconds
-      loadNotifications(); // Initial load
-
-      // Add click handler for notification bell
-      document
-        .getElementById("notification-btn")
-        .addEventListener("click", () => {
-          const dropdown = document.getElementById("notification-dropdown");
-          dropdown.classList.toggle("hidden");
-          if (!dropdown.classList.contains("hidden")) {
-            loadNotifications(); // Refresh notifications when dropdown is opened
-          }
-        });
+      // Load notifications when page loads
+      document.addEventListener("DOMContentLoaded", loadNotifications);
     </script>
     <script>
       // Function to mark donation as collected and show review modal

@@ -67,6 +67,7 @@
         starInputs.forEach((input) => {
           input.addEventListener("change", function () {
             selectedRating = parseInt(this.id.split("-")[1]);
+            console.log('Selected rating:', selectedRating);
             // Show the form when a star is selected
             ratingForm.style.display = "block";
           });
@@ -81,25 +82,30 @@
             return;
           }
 
+          const reviewData = {
+            rating: selectedRating,
+            comment: commentTextarea.value.trim()
+          };
+          
+          console.log('Submitting review:', reviewData);
+
           try {
             const response = await fetch(
-              `/api/donations/collect/${donationId}`,
+              `/api/donations/${donationId}/review`,
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  rating: selectedRating,
-                  comment: commentTextarea.value,
-                }),
+                body: JSON.stringify(reviewData),
               }
             );
 
             const data = await response.json();
+            console.log('Review submission response:', data);
 
             if (!response.ok) {
-              throw new Error(data.message || "Failed to submit rating");
+              throw new Error(data.message || data.error || "Failed to submit rating");
             }
 
             // Show success message

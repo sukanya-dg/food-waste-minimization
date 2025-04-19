@@ -227,11 +227,10 @@ router.post('/donate/:donationId', async (req, res) => {
     }
 });
 
-// Collect donation and add review
+// Confirm collection of donation
 router.post("/collect/:donationId", async (req, res) => {
   try {
     const { donationId } = req.params;
-    const { rating, comment } = req.body;
 
     // Find and update the donation
     const donation = await Donation.findById(donationId);
@@ -239,19 +238,21 @@ router.post("/collect/:donationId", async (req, res) => {
       return res.status(404).json({ message: "Donation not found" });
     }
 
-    // Update collection status and add review
-    donation.isCollected = true;
-    donation.collectedAt = new Date();
-    donation.review = {
-      rating: rating,
-      comment: comment,
-      createdAt: new Date()
-    };
-
-    // Save the updated donation
+    // Update collection status
+    donation.status = 'Collected';
     await donation.save();
 
-    res.status(200).json({ message: "Donation collected and reviewed successfully" });
+    // Create notification for donor
+    const notification = new Notification({
+      userId: donation.donorId,
+      userType: 'Donor',
+      title: 'Donation Collected',
+      message: 'Your donation has been collected successfully!',
+      donationId: donation._id
+    });
+    await notification.save();
+
+    res.status(200).json({ message: "Donation collected successfully" });
   } catch (error) {
     console.error("Error collecting donation:", error);
     res.status(500).json({ message: "Failed to collect donation" });
@@ -259,40 +260,70 @@ router.post("/collect/:donationId", async (req, res) => {
 });
 
 // Add review to donation
-router.post('/:donationId/review', async (req, res) => {
-    try {
-        const { rating, comment } = req.body;
-        const donationId = req.params.donationId;
+router.post("/:donationId/review", async (req, res) => {
+  try {
+    const { donationId } = req.params;
+    const { rating, comment } = req.body;
+    
+    console.log('Review submission attempt:', {
+      donationId,
+      rating,
+      comment
+    });
 
-        if (!rating) {
-            return res.status(400).json({ error: 'Rating is required' });
-        }
-
-        const donation = await Donation.findById(donationId);
-        if (!donation) {
-            return res.status(404).json({ error: 'Donation not found' });
-        }
-
-        // Update donation with review
-        donation.review = {
-            rating: parseInt(rating),
-            comment: comment || '',
-            createdAt: new Date()
-        };
-
-        await donation.save();
-
-        res.json({
-            success: true,
-            message: 'Review submitted successfully'
-        });
-    } catch (error) {
-        console.error('Review submission error:', error);
-        res.status(500).json({
-            error: 'Failed to submit review',
-            message: error.message
-        });
+    if (!rating) {
+      console.log('Rating missing in request');
+      return res.status(400).json({ message: "Rating is required" });
     }
+
+    // Find the donation
+    const donation = await Donation.findById(donationId);
+    console.log('Found donation:', donation);
+
+    if (!donation) {
+      console.log('Donation not found with ID:', donationId);
+      return res.status(404).json({ message: "Donation not found" });
+    }
+
+    // Add review
+    const reviewData = {
+      rating: parseInt(rating),
+      comment: comment || '',
+      createdAt: new Date()
+    };
+    console.log('Setting review data:', reviewData);
+
+    donation.review = reviewData;
+
+    // Save the updated donation
+    const savedDonation = await donation.save();
+    console.log('Saved donation with review:', savedDonation);
+
+    // Create notification for donor about the review
+    const notification = new Notification({
+      userId: donation.donorId,
+      userType: 'Donor',
+      title: 'Donation Reviewed',
+      message: `Your donation received a ${rating}-star rating!`,
+      donationId: donation._id
+    });
+    await notification.save();
+    console.log('Notification created for donor');
+
+    res.status(200).json({ 
+      message: "Review submitted successfully",
+      review: savedDonation.review 
+    });
+  } catch (error) {
+    console.error("Error submitting review:", {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({ 
+      message: "Failed to submit review",
+      error: error.message 
+    });
+  }
 });
 
 module.exports = router; 

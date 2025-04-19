@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>rating</title>
+    <title>Rate Your Experience</title>
     <link rel="stylesheet" href="rating.css" />
     <link
       rel="stylesheet"
@@ -14,30 +14,31 @@
     <div class="container">
       <div class="post">
         <div class="text">Thanks for rating us!</div>
-        <!--<div class="edit">EDIT</div>-->
       </div>
       <div class="star-widget">
+        <div class="rating-title">Rate your experience</div>
         <input type="radio" name="rate" id="rate-5" />
-        <label for="rate-5" class="fas fa-star"></label>
         <input type="radio" name="rate" id="rate-4" />
-        <label for="rate-4" class="fas fa-star"></label>
         <input type="radio" name="rate" id="rate-3" />
-        <label for="rate-3" class="fas fa-star"></label>
         <input type="radio" name="rate" id="rate-2" />
-        <label for="rate-2" class="fas fa-star"></label>
         <input type="radio" name="rate" id="rate-1" />
-        <label for="rate-1" class="fas fa-star"></label>
+        <div class="stars-container">
+          <label for="rate-5" class="fas fa-star"></label>
+          <label for="rate-4" class="fas fa-star"></label>
+          <label for="rate-3" class="fas fa-star"></label>
+          <label for="rate-2" class="fas fa-star"></label>
+          <label for="rate-1" class="fas fa-star"></label>
+        </div>
         <form id="rating-form">
           <header></header>
           <div class="textarea">
             <textarea
               id="comment"
-              cols="30"
               placeholder="Describe your experience..."
             ></textarea>
           </div>
           <div class="btn">
-            <button type="submit">Post</button>
+            <button type="submit">Submit Rating</button>
           </div>
         </form>
       </div>
@@ -56,7 +57,6 @@
         const btn = document.querySelector("button");
         const post = document.querySelector(".post");
         const widget = document.querySelector(".star-widget");
-        const editBtn = document.querySelector(".edit");
         const ratingForm = document.getElementById("rating-form");
         const starInputs = document.querySelectorAll('input[name="rate"]');
         const commentTextarea = document.getElementById("comment");
@@ -67,6 +67,8 @@
         starInputs.forEach((input) => {
           input.addEventListener("change", function () {
             selectedRating = parseInt(this.id.split("-")[1]);
+            // Show the form when a star is selected
+            ratingForm.style.display = "block";
           });
         });
 
@@ -81,7 +83,7 @@
 
           try {
             const response = await fetch(
-              `/api/donations/${donationId}/review`,
+              `/api/donations/collect/${donationId}`,
               {
                 method: "POST",
                 headers: {
@@ -115,12 +117,6 @@
             );
           }
         });
-
-        // Handle edit button
-        editBtn.onclick = () => {
-          widget.style.display = "block";
-          post.style.display = "none";
-        };
       });
     </script>
   </body>

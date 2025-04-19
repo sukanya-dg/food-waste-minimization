@@ -1,133 +1,201 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
-*{
+
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
-html,body{
+
+html, body {
     display: grid;
     height: 100%;
     place-items: center;
     text-align: center;
     background: #9fd2e2;
 }
-.container{
+
+.container {
     position: relative;
-    width: 400px;
+    width: 90%;
+    max-width: 400px;
     background: #126576;
-    padding: 20px 30px;
+    padding: 1.25rem;
     border: 1px solid #131424;
-    border-radius: 5px;
+    border-radius: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    margin: 1rem;
 }
-.container .text{
-    font-size: 25px;
+
+.container .text {
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
     color: #f1f6fa;
     font-weight: 500;
+    margin-bottom: 1rem;
 }
-.container .edit{
-    position: absolute;
-    right: 10px;
-    top: 5px;
-    font-size: 16px;
-    color: #f5fafa;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  .container .edit:hover{
-    text-decoration: underline;
-  }
-.container .star-widget input{
+
+.rating-title {
+    font-size: clamp(1.1rem, 3.5vw, 1.3rem);
+    color: #f1f6fa;
+    margin-bottom: 1rem;
+}
+
+.post {
     display: none;
 }
-.star-widget label{
-    font-size: 40px;
+
+.star-widget {
+    width: 100%;
+}
+
+.star-widget input {
+    display: none;
+}
+
+.stars-container {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.star-widget label {
+    font-size: clamp(2rem, 8vw, 2.5rem);
     color: #b2cdd9;
-    padding: 10px;
-    float: right;
+    padding: 0.5rem;
+    cursor: pointer;
     transition: all 0.2s ease;
 }
-input:not(:checked) ~ label:hover,
-input:not(:checked) ~ label:hover ~ label
-{
+
+/* Hover effect for devices that support it */
+@media (hover: hover) {
+    .stars-container label:hover,
+    .stars-container label:hover ~ label {
+        color: #fd4;
+    }
+}
+
+/* Default state - all stars uncolored */
+.stars-container label {
+    color: #b2cdd9;
+}
+
+/* Star coloring logic for each rating */
+#rate-5:checked ~ .stars-container label:nth-child(n+1):nth-child(-n+5),
+#rate-4:checked ~ .stars-container label:nth-child(n+2):nth-child(-n+5),
+#rate-3:checked ~ .stars-container label:nth-child(n+3):nth-child(-n+5),
+#rate-2:checked ~ .stars-container label:nth-child(n+4):nth-child(-n+5),
+#rate-1:checked ~ .stars-container label:nth-child(5) {
     color: #fd4;
 }
-input:checked ~ label{
-    color: #fd4;
-}
-input#rate-5:checked ~ label{
-    color: #fd4;
-    text-shadow: 0 0 20px #952;
-}
-#rate-1:checked ~ form header:before{
+
+#rate-1:checked ~ form header:before {
     content: "I hate it";
-  }
-  #rate-2:checked ~ form header:before{
+}
+
+#rate-2:checked ~ form header:before {
     content: "Could be better";
-  }
-  #rate-3:checked ~ form header:before{
+}
+
+#rate-3:checked ~ form header:before {
     content: "It is average";
-  }
-  #rate-4:checked ~ form header:before{
-    content: "I like it ";
-  }
-  #rate-5:checked ~ form header:before{
-    content: "I just love it ";
-  }
-  .container form{
+}
+
+#rate-4:checked ~ form header:before {
+    content: "I like it";
+}
+
+#rate-5:checked ~ form header:before {
+    content: "I just love it";
+}
+
+.star-widget form {
     display: none;
-  }
-  input:checked ~ form{
-    display: block;
-  }
-form header{
     width: 100%;
-    font-size: 25px;
+}
+
+.star-widget input:checked ~ form {
+    display: block;
+}
+
+form header {
+    width: 100%;
+    font-size: clamp(1.1rem, 3.5vw, 1.3rem);
     color: #fe7;
     font-weight: 500;
-    margin: 5px 0 20px 0;
+    margin: 0.5rem 0 1rem 0;
     text-align: center;
     transition: all 0.2s ease;
 }
 
-form .textarea{
-    height: 100px;
+form .textarea {
+    height: clamp(100px, 20vh, 150px);
     width: 100%;
-    overflow: hidden;
+    margin-bottom: 1rem;
 }
-form .textarea textarea{
+
+form .textarea textarea {
     height: 100%;
     width: 100%;
     outline: none;
     color: rgb(1, 10, 19);
     border: 1px solid #bcd2df;
     background: #dee6eb;
-    padding: 10px;
-    font-size: 17px;
+    padding: 0.75rem;
+    font-size: clamp(0.9rem, 3vw, 1rem);
     resize: none;
+    border-radius: 0.25rem;
 }
-form .btn{
-    height: 45px;
+
+form .btn {
     width: 100%;
-    margin: 15px 0;
+    margin: 0.5rem 0;
 }
-form .btn button{
-    height: 100%;
+
+form .btn button {
     width: 100%;
+    padding: 0.75rem;
     border: 1px solid #f3eeee;
     outline: none;
     background: #dee6eb;
     color: #656262;
-    font-size: 17px;
+    font-size: clamp(0.9rem, 3vw, 1rem);
     font-weight: 500;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.3s ease;
+    border-radius: 0.25rem;
 }
-form .btn button:hover{
-    background:#252828;
+
+form .btn button:hover {
+    background: #252828;
+    color: #fff;
+}
+
+/* Small devices (phones) */
+@media screen and (max-width: 480px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .star-widget label {
+        padding: 0.3rem;
+    }
+}
+
+/* Medium devices (tablets) */
+@media screen and (min-width: 481px) and (max-width: 768px) {
+    .container {
+        padding: 1.5rem;
+    }
+}
+
+/* Handle devices without hover capability */
+@media (hover: none) {
+    .star-widget label {
+        padding: 0.75rem;
+    }
 }

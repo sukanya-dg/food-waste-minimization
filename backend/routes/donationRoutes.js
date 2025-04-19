@@ -227,41 +227,35 @@ router.post('/donate/:donationId', async (req, res) => {
     }
 });
 
-// Mark donation as collected and add review
-router.post('/collect/:donationId', async (req, res) => {
-    try {
-        const { rating, comment } = req.body;
-        const donation = await Donation.findById(req.params.donationId)
-            .populate('donorId', 'name');
+// Collect donation and add review
+router.post("/collect/:donationId", async (req, res) => {
+  try {
+    const { donationId } = req.params;
+    const { rating, comment } = req.body;
 
-        if (!donation) {
-            return res.status(404).json({ message: 'Donation not found' });
-        }
-
-        donation.status = 'Collected';
-        donation.review = {
-            rating,
-            comment,
-            createdAt: new Date()
-        };
-        await donation.save();
-
-        // Create notification for donor
-        const notification = new Notification({
-            userId: donation.donorId._id,
-            userType: 'Donor',
-            title: 'Donation Collected',
-            message: 'Great Job! Your Kindness helped to resolve hunger.'
-        });
-        await notification.save();
-
-        res.json({
-            message: 'Great Job! Your Kindness helped to resolve hunger.',
-            donation
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    // Find and update the donation
+    const donation = await Donation.findById(donationId);
+    if (!donation) {
+      return res.status(404).json({ message: "Donation not found" });
     }
+
+    // Update collection status and add review
+    donation.isCollected = true;
+    donation.collectedAt = new Date();
+    donation.review = {
+      rating: rating,
+      comment: comment,
+      createdAt: new Date()
+    };
+
+    // Save the updated donation
+    await donation.save();
+
+    res.status(200).json({ message: "Donation collected and reviewed successfully" });
+  } catch (error) {
+    console.error("Error collecting donation:", error);
+    res.status(500).json({ message: "Failed to collect donation" });
+  }
 });
 
 // Add review to donation

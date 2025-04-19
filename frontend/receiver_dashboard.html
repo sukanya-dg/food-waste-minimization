@@ -1089,13 +1089,13 @@
           if (isVerified) {
             verifyBtn.innerText = "Verified ✅";
             verifyBtn.disabled = true;
-            verifyBtn.classList.add("bg-[#74A57F]");
+            verifyBtn.classList.add("bg-[#0B464A]");
           } else {
             verifyBtn.innerText = "Verify Now";
             verifyBtn.disabled = false;
-            verifyBtn.classList.remove("bg-[#74A57F]");
+            verifyBtn.classList.remove("bg-[#0B464A]");
             verifyBtn.classList.add(
-              "bg-[#74A57F]",
+              "bg-[#0B464A]",
               "hover:bg-[#5d8a67]",
               "text-white",
               "px-4",
@@ -1211,7 +1211,7 @@
               // Update the UI to show verified status
               this.innerText = "Verified ✅";
               this.disabled = true;
-              this.classList.add("bg-[#74A57F]");
+              this.classList.add("bg-[#0B464A]");
 
               // Update address if provided
               if (verifyData.address) {
@@ -1497,7 +1497,7 @@
               <div class="p-6 flex-none border-t">
                 <h4 class="font-bold mb-2">Reply:</h4>
                 <textarea id="reply-text" rows="4" class="w-full border rounded p-2 mb-2" placeholder="Type your reply here..."></textarea>
-                <button onclick="submitReply('${ticket._id}')" class="bg-[#74A57F] text-white px-4 py-2 rounded">Submit Reply</button>
+                <button onclick="submitReply('${ticket._id}')" class="bg-[#0B464A] text-white px-4 py-2 rounded">Submit Reply</button>
               </div>
             `
                 : ""

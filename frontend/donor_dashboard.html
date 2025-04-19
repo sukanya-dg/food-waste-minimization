@@ -41,7 +41,7 @@
 
       .notification-dropdown {
         display: none;
-        position: absolute;
+        position: fixed;
         right: 20px;
         top: 60px;
         background: white;
@@ -140,12 +140,12 @@
         .sidebar {
           width: 200px;
         }
-        
+
         main {
           margin-left: 200px;
           width: calc(100% - 200px);
         }
-        
+
         .notification-dropdown {
           width: 250px;
         }
@@ -278,6 +278,7 @@
         .notification-dropdown {
           width: 95%;
           right: 5px;
+          max-height: calc(100vh - 60px);
         }
 
         #raiseComplaintBtn {
@@ -371,9 +372,7 @@
   </head>
   <body class="flex bg-opacity text-white">
     <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" onclick="toggleSidebar()">
-      ☰
-    </button>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
 
     <!-- Sidebar -->
     <aside class="sidebar text-white p-5 min-h-screen">
@@ -408,11 +407,11 @@
 
     <script>
       function toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        sidebar.classList.toggle('active');
+        const sidebar = document.querySelector(".sidebar");
+        sidebar.classList.toggle("active");
       }
 
-      document
+      /*document
         .getElementById("logout-btn")
         .addEventListener("click", function () {
           if (confirm("Are you sure you want to log out?")) {
@@ -420,7 +419,7 @@
             alert("You have been logged out.");
             window.location.href = "/donor_login.html";
           }
-        });
+        });*/
     </script>
 
     <!-- Main Content -->
@@ -446,7 +445,7 @@
             <!-- Notifications Dropdown -->
             <div
               id="notification-dropdown"
-              class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm"
+              class="hidden fixed right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm"
             >
               <p class="text-gray-500">Loading...</p>
             </div>
@@ -541,7 +540,10 @@
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
         <div class="overflow-x-auto">
-          <table id="food-listings" class="w-full text-left border-collapse min-w-[800px]">
+          <table
+            id="food-listings"
+            class="w-full text-left border-collapse min-w-[800px]"
+          >
             <thead>
               <tr>
                 <th class="border-b p-2 w-1/6">Title</th>
@@ -1325,6 +1327,7 @@
           .getElementById("logout-btn")
           .addEventListener("click", function () {
             if (confirm("Are you sure you want to log out?")) {
+              alert("You have been logged out.");
               localStorage.removeItem("donorcompanyname");
               fetch("/api/donor/logout").then(() => {
                 window.location.href = "/donor_login.html";

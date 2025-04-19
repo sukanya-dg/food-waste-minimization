@@ -112,12 +112,12 @@
         .sidebar {
           width: 200px;
         }
-        
+
         main {
           margin-left: 200px;
           width: calc(100% - 200px);
         }
-        
+
         .notification-dropdown {
           width: 250px;
         }
@@ -185,6 +185,7 @@
         .notification-dropdown {
           width: 95%;
           right: 5px;
+          max-height: calc(100vh - 60px);
         }
 
         .bg-white {
@@ -269,7 +270,7 @@
         transition: background-color 0.3s;
         margin-bottom: 15px;
       }
-      
+
       .home-button:hover {
         background: #064751;
       }
@@ -325,7 +326,7 @@
       }
 
       .notification-dropdown {
-        position: absolute;
+        position: fixed;
         top: 100%;
         right: 0;
         width: 320px;
@@ -353,9 +354,7 @@
   </head>
   <body class="flex bg-opacity text-white">
     <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" onclick="toggleSidebar()">
-      ☰
-    </button>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
 
     <!-- Sidebar -->
     <aside class="sidebar text-white p-5 min-h-screen">
@@ -371,9 +370,9 @@
               🏠 Home
             </button>
           </li>
-          <li class="py-2">
+          <!--<li class="py-2">
             <a href="#" class="block" id="reviews-link">⭐ Reviews</a>
-          </li>
+          </li>-->
           <!-- Logout Button -->
           <li class="py-96 mt-4"></li>
           <div class="mt-auto flex justify-center pb-4">
@@ -390,8 +389,8 @@
 
     <script>
       function toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        sidebar.classList.toggle('active');
+        const sidebar = document.querySelector(".sidebar");
+        sidebar.classList.toggle("active");
       }
     </script>
 
@@ -410,19 +409,35 @@
     <!-- Main Content -->
     <main class="flex-1 p-6">
       <header class="flex justify-between items-center mb-5 bg-[#0b464a] p-4">
-        <h1 class="text-2xl font-bold text-white text-center flex-1 tracking-wider">RECEIVER DASHBOARD</h1>
+        <h1
+          class="text-2xl font-bold text-white text-center flex-1 tracking-wider"
+        >
+          RECEIVER DASHBOARD
+        </h1>
         <div class="flex items-center gap-4">
-          <div class="relative text-red-500 text-xl cursor-pointer" id="notification-btn">
+          <div
+            class="relative text-red-500 text-xl cursor-pointer"
+            id="notification-btn"
+          >
             🔔
-            <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+            <span
+              id="notification-count"
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full"
+            >
               0
             </span>
             <!-- Notifications Dropdown -->
-            <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm">
+            <div
+              id="notification-dropdown"
+              class="hidden fixed right-0 mt-3 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 space-y-2 text-sm"
+            >
               <p class="text-gray-500">Loading...</p>
             </div>
           </div>
-          <button id="raiseComplaintBtn" class="bg-[#075261] text-white text-sm px-3 py-1 rounded hover:bg-[#064751] transition">
+          <button
+            id="raiseComplaintBtn"
+            class="bg-[#075261] text-white text-sm px-3 py-1 rounded hover:bg-[#064751] transition"
+          >
             📝 Raise Complaint
           </button>
         </div>
@@ -440,9 +455,15 @@
         </p>
 
         <!-- Add verification warning message -->
-        <div id="unverified-message" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+        <div
+          id="unverified-message"
+          class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4"
+        >
           <p class="font-bold">Verification Required</p>
-          <p>Please verify your account to request food donations. Click the "Verify Now" button above to proceed.</p>
+          <p>
+            Please verify your account to request food donations. Click the
+            "Verify Now" button above to proceed.
+          </p>
         </div>
 
         <!-- Add verification button -->
@@ -459,7 +480,10 @@
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Available Food Listings</h2>
         <div class="overflow-x-auto">
-          <table id="food-listings" class="w-full text-left border-collapse min-w-[800px]">
+          <table
+            id="food-listings"
+            class="w-full text-left border-collapse min-w-[800px]"
+          >
             <thead>
               <tr>
                 <th class="border-b p-2 w-1/7">Title</th>
@@ -482,7 +506,10 @@
       <div class="bg-white p-4 rounded-lg shadow-md mt-5 text-black">
         <h2 class="text-xl font-bold mb-3">Your Requests</h2>
         <div class="overflow-x-auto">
-          <table id="request-list" class="w-full text-left border-collapse min-w-[600px]">
+          <table
+            id="request-list"
+            class="w-full text-left border-collapse min-w-[600px]"
+          >
             <thead>
               <tr>
                 <th class="border-b p-2 w-1/4">Food Item</th>
@@ -572,14 +599,19 @@
           }
 
           // Get verification status
-          const verificationResponse = await fetch(`${baseUrl}/api/receiver/details`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ nponame: localStorage.getItem("receivernponame") }),
-            credentials: "include",
-          });
+          const verificationResponse = await fetch(
+            `${baseUrl}/api/receiver/details`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                nponame: localStorage.getItem("receivernponame"),
+              }),
+              credentials: "include",
+            }
+          );
           const verificationData = await verificationResponse.json();
           const isVerified = verificationData.verified;
 
@@ -617,9 +649,11 @@
                 listing.status === "Active"
                   ? `
                 <button 
-                  class="bg-blue-500 text-white px-3 py-1 rounded ${!isVerified ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="bg-blue-500 text-white px-3 py-1 rounded ${
+                    !isVerified ? "opacity-50 cursor-not-allowed" : ""
+                  }"
                   onclick="sendFoodRequest('${listing._id}')"
-                  ${!isVerified ? 'disabled' : ''}
+                  ${!isVerified ? "disabled" : ""}
                 >
                   Request
                 </button>
@@ -632,9 +666,10 @@
           });
 
           // Show/hide verification warning message
-          const unverifiedMessage = document.getElementById('unverified-message');
+          const unverifiedMessage =
+            document.getElementById("unverified-message");
           if (unverifiedMessage) {
-            unverifiedMessage.classList.toggle('hidden', isVerified);
+            unverifiedMessage.classList.toggle("hidden", isVerified);
           }
         } catch (error) {
           console.error("Error fetching listings:", error);
@@ -781,19 +816,26 @@
       async function sendFoodRequest(donationId) {
         try {
           // Check verification status first
-          const verificationResponse = await fetch(`${baseUrl}/api/receiver/details`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ nponame: localStorage.getItem("receivernponame") }),
-            credentials: "include",
-          });
+          const verificationResponse = await fetch(
+            `${baseUrl}/api/receiver/details`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                nponame: localStorage.getItem("receivernponame"),
+              }),
+              credentials: "include",
+            }
+          );
 
           const verificationData = await verificationResponse.json();
-          
+
           if (!verificationData.verified) {
-            alert("Please verify your account before requesting food donations.");
+            alert(
+              "Please verify your account before requesting food donations."
+            );
             return;
           }
 
@@ -1317,16 +1359,15 @@
 
     <script>
       function showSuccessPopup() {
-        const popup = document.getElementById('success-popup');
-        popup.classList.remove('hidden');
+        const popup = document.getElementById("success-popup");
+        popup.classList.remove("hidden");
       }
 
       function closeSuccessPopup() {
-        const popup = document.getElementById('success-popup');
-        popup.classList.add('hidden');
+        const popup = document.getElementById("success-popup");
+        popup.classList.add("hidden");
       }
     </script>
-
 
     <!-- Notification handling script -->
     <script>

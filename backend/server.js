@@ -19,12 +19,13 @@ const customerRoutes = require("./routes/customerRoutes");
 const complaintRoutes = require('./routes/complaintRoutes');
 const donationRoutes = require("./routes/donationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 // ✅ Initialize Express
 const app = express();
 
 // ✅ Middleware
-//Trust the first proxy (Render’s load‑balancer)
+//Trust the first proxy (Render's load‑balancer)
 app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -76,6 +77,7 @@ app.use("/api/customer", customerRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/donations", donationRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // ✅ Server Homepage
 app.get("/", (req, res) => {

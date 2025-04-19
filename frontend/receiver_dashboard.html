@@ -474,6 +474,7 @@
           Verify Now
         </button>
         <p id="verificationStatus" class="text-red-500 text-sm mt-2"></p>
+        <p id="verificationTimeMessage" class="text-gray-600 text-sm mt-2 hidden">It usually takes 1-2 minutes for verification! PLEASE WAIT</p>
       </div>
 
       <!-- Available Food Listings -->
@@ -491,6 +492,7 @@
                 <th class="border-b p-2 w-1/7">Quantity</th>
                 <th class="border-b p-2 w-1/7">Expiry Date</th>
                 <th class="border-b p-2 w-1/7">Restaurant</th>
+                <th class="border-b p-2 w-1/7">Reviews</th>
                 <th class="border-b p-2 w-1/7">Status</th>
                 <th class="border-b p-2 w-1/7">Request</th>
               </tr>
@@ -633,6 +635,14 @@
                 listing.expiryDate
               ).toLocaleDateString()}</td>
               <td class="p-2">${donorName}</td>
+              <td class="p-2">
+                <button 
+                  class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+                  onclick="showRestaurantReviews('${listing.donorId?._id || ''}')"
+                >
+                  Check Reviews
+                </button>
+              </td>
               <td class="p-2 ${
                 listing.status === "Active"
                   ? "text-green-500"
@@ -1151,6 +1161,7 @@
             // Show verifying status
             this.innerText = "Verifying...";
             this.disabled = true;
+            document.getElementById("verificationTimeMessage").classList.remove("hidden");
 
             // First fetch the receiver details to get the registration number
             const response = await fetch(`${baseUrl}/api/receiver/details`, {
@@ -1212,6 +1223,7 @@
               this.innerText = "Verified ✅";
               this.disabled = true;
               this.classList.add("bg-[#0B464A]");
+              document.getElementById("verificationTimeMessage").classList.add("hidden");
 
               // Update address if provided
               if (verifyData.address) {
@@ -1226,6 +1238,7 @@
               // Reset button state
               this.innerText = "Verify Now";
               this.disabled = false;
+              document.getElementById("verificationTimeMessage").classList.add("hidden");
             }
           } catch (error) {
             console.error("Error during verification:", error);
@@ -1233,6 +1246,7 @@
             // Reset button state
             this.innerText = "Verify Now";
             this.disabled = false;
+            document.getElementById("verificationTimeMessage").classList.add("hidden");
           }
         });
     </script>
@@ -1701,6 +1715,117 @@
           btn.classList.add("selected");
         });
       });
+    </script>
+    <!-- Restaurant Reviews Modal -->
+    <div
+      id="restaurant-reviews-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2 sm:p-4"
+    >
+      <div class="bg-white text-black rounded-lg p-4 sm:p-6 w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col relative">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg sm:text-xl font-bold">Receiver Reviews</h2>
+          <button
+            id="close-reviews-modal"
+            class="text-gray-500 hover:text-gray-700 text-xl p-1"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="text-gray-600 mb-4 text-sm sm:text-base">
+          Average Rating: <span id="average-rating" class="font-bold">0</span>/5
+        </div>
+        <div id="reviews-container" class="flex-1 overflow-y-auto space-y-3 min-h-0 pr-2">
+          <!-- Reviews will be dynamically inserted here -->
+        </div>
+        <div id="no-reviews-message" class="text-center text-gray-500 hidden py-4">
+          No reviews available for this restaurant yet.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Function to show restaurant reviews
+      async function showRestaurantReviews(donorId) {
+        if (!donorId) {
+          alert("No restaurant information available");
+          return;
+        }
+
+        const modal = document.getElementById("restaurant-reviews-modal");
+        const reviewsContainer = document.getElementById("reviews-container");
+        const noReviewsMessage = document.getElementById("no-reviews-message");
+        const averageRatingEl = document.getElementById("average-rating");
+
+        try {
+          const response = await fetch(`/api/reviews/restaurant/${donorId}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch reviews");
+          }
+
+          const data = await response.json();
+          
+          if (data.success && data.reviews.length > 0) {
+            // Calculate average rating to match donor dashboard
+            const totalRating = data.reviews.reduce((sum, review) => sum + review.rating, 0);
+            const avgRating = totalRating / data.reviews.length;
+            // Round to nearest 0.1 and ensure one decimal place
+            const roundedRating = Math.round(avgRating * 10) / 10;
+            averageRatingEl.textContent = roundedRating.toFixed(1);
+
+            reviewsContainer.innerHTML = data.reviews
+              .map(
+                (review) => `
+              <div class="bg-blue-50 rounded-lg p-3 sm:p-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex text-yellow-400 text-lg sm:text-xl">
+                      ${Array(5)
+                        .fill()
+                        .map((_, i) => `<span>${i < review.rating ? '★' : '☆'}</span>`)
+                        .join("")}
+                    </div>
+                    <span class="text-xs sm:text-sm text-gray-500">
+                      ${new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <p class="text-gray-700 my-2 text-sm sm:text-base break-words">${review.comment}</p>
+                <p class="text-xs sm:text-sm text-gray-500">Food Item: ${review.foodItem}</p>
+              </div>
+            `
+              )
+              .join("");
+            noReviewsMessage.classList.add("hidden");
+            reviewsContainer.classList.remove("hidden");
+          } else {
+            reviewsContainer.innerHTML = "";
+            noReviewsMessage.classList.remove("hidden");
+            reviewsContainer.classList.add("hidden");
+            averageRatingEl.textContent = "0.0";
+          }
+
+          modal.classList.remove("hidden");
+        } catch (error) {
+          console.error("Error fetching reviews:", error);
+          alert("Failed to load reviews. Please try again.");
+        }
+      }
+
+      // Close reviews modal
+      document
+        .getElementById("close-reviews-modal")
+        .addEventListener("click", () => {
+          document.getElementById("restaurant-reviews-modal").classList.add("hidden");
+        });
+
+      // Close modal when clicking outside
+      document
+        .getElementById("restaurant-reviews-modal")
+        .addEventListener("click", (e) => {
+          if (e.target === e.currentTarget) {
+            e.target.classList.add("hidden");
+          }
+        });
     </script>
   </body>
 </html>

@@ -528,6 +528,19 @@
       </div>
     </main>
 
+    <!-- Donation Cancelled Popup -->
+    <div id="donation-cancelled-popup" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+      <div class="bg-white text-black rounded-lg p-6 w-full max-w-md shadow-xl">
+        <h2 class="text-xl font-bold mb-4">Donation Cancelled</h2>
+        <p id="cancellation-message" class="mb-4"></p>
+        <div class="flex justify-end">
+          <button onclick="closeCancellationPopup()" class="px-4 py-2 rounded bg-[#0B464A] text-white hover:bg-blue-700">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Complaint Modal -->
     <div
       id="complaint-modal"
@@ -1116,6 +1129,53 @@
         }
       }
 
+      // Function to check for cancelled donations
+      async function checkCancelledDonations() {
+        try {
+          const response = await fetch('/api/donations/requests', {
+            credentials: 'include'
+          });
+          const data = await response.json();
+          
+          // Ensure we have an array of requests
+          const requests = Array.isArray(data) ? data : (data.requests || []);
+          
+          // Get the last request that was cancelled
+          const cancelledRequest = requests.find(request => request.status === 'Cancelled');
+          if (cancelledRequest && cancelledRequest.donorId) {
+            const companyName = cancelledRequest.donorId.companyname || 'Unknown Company';
+            showCancellationPopup(companyName);
+          }
+        } catch (error) {
+          console.error('Error checking cancelled donations:', error);
+        }
+      }
+
+      // Function to show donation cancelled popup
+      function showCancellationPopup(companyName) {
+        const popup = document.getElementById('donation-cancelled-popup');
+        const message = document.getElementById('cancellation-message');
+        if (popup && message) {
+          message.textContent = `The donation has been cancelled by ${companyName}`;
+          popup.classList.remove('hidden');
+          
+          // Add event listener to close popup when clicking outside
+          popup.addEventListener('click', (e) => {
+            if (e.target === popup) {
+              closeCancellationPopup();
+            }
+          });
+        }
+      }
+
+      // Function to close donation cancelled popup
+      function closeCancellationPopup() {
+        const popup = document.getElementById('donation-cancelled-popup');
+        if (popup) {
+          popup.classList.add('hidden');
+        }
+      }
+
       // Initialize the dashboard
       document.addEventListener("DOMContentLoaded", async function () {
         console.log("DOM Content Loaded"); // Debug log
@@ -1134,6 +1194,7 @@
           fetchReceiverDetails(),
           fetchFoodListings(),
           loadNotifications(),
+          checkCancelledDonations()
         ]);
 
         // Set up periodic refresh
@@ -1142,6 +1203,7 @@
             fetchReceiverDetails(),
             fetchFoodListings(),
             loadNotifications(),
+            checkCancelledDonations()
           ]);
         }, 30000); // Refresh every 30 seconds
       });

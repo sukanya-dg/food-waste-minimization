@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const Donor = require("../models/Donor");
 const { verifyFSSAI } = require("./fssaiVerification");
 const Donation = require("../models/Donation");
+const DonateNotification = require("../models/DonateNotification");
 
 // ✅ Signup Route
 router.post("/signup", async (req, res) => {
@@ -162,6 +163,60 @@ router.get("/donations", async (req, res) => {
     } catch (error) {
         console.error("Fetch Donations Error:", error);
         res.status(500).json({ success: false, message: "Failed to fetch donations" });
+    }
+});
+
+// Add route to delete/cancel a donation
+router.delete("/donations/:donationId", async (req, res) => {
+    if (!req.session.Donor) {
+        return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    try {
+        const donation = await Donation.findOne({
+            _id: req.params.donationId,
+            donorId: req.session.Donor.id,
+            status: { $in: ['Active', 'Claimed'] }
+        }).populate('receiverId', 'nponame');
+
+        if (!donation) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Donation not found or cannot be cancelled" 
+            });
+        }
+
+        // If the donation was claimed, create a notification for the receiver
+        if (donation.status === 'Claimed' && donation.receiverId) {
+            try {
+                const notification = new DonateNotification({
+                    userId: donation.receiverId._id,
+                    userType: 'Receiver',
+                    title: 'Donation Cancelled',
+                    message: `The donation "${donation.title}" has been cancelled by the donor.`,
+                    donationId: donation._id
+                });
+                await notification.save();
+            } catch (notificationError) {
+                console.error("Error creating notification:", notificationError);
+                // Continue with donation deletion even if notification fails
+            }
+        }
+
+        await donation.deleteOne();
+
+        res.json({
+            success: true,
+            message: "Donation cancelled successfully"
+        });
+
+    } catch (error) {
+        console.error("Cancel Donation Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to cancel donation",
+            error: error.message 
+        });
     }
 });
 

@@ -864,13 +864,6 @@
                 </button>
               </div>
             `
-                : donation.status === "Active"
-                ? `
-              <button class="bg-red-500 text-white px-2 py-1 rounded cancel-btn" 
-                data-id="${donation._id}">
-                Cancel
-              </button>
-            `
                 : ""
             }
           </td>
@@ -933,47 +926,6 @@
               alert(
                 error.message || "Failed to confirm donation. Please try again."
               );
-            }
-          });
-        }
-
-        // Add event listener to cancel button if it exists
-        const cancelBtn = row.querySelector(".cancel-btn");
-        if (cancelBtn) {
-          cancelBtn.addEventListener("click", async function () {
-            const donationId = this.dataset.id;
-            const isClaimed = row.querySelector(".donate-btn") !== null;
-            const confirmMessage = isClaimed 
-              ? "This donation has been claimed by a receiver. Are you sure you want to cancel it?"
-              : "Are you sure you want to cancel this donation?";
-            
-            if (confirm(confirmMessage)) {
-              try {
-                const response = await fetch(`${baseUrl}/api/donor/donations/${donationId}`, {
-                  method: "DELETE",
-                  credentials: "include"
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                  // Remove the row from the table
-                  row.remove();
-                  alert("Donation cancelled successfully");
-                  // If it was a claimed donation, refresh the requests list
-                  if (isClaimed) {
-                    try {
-                      await fetchDonationRequests();
-                    } catch (error) {
-                      console.error("Error refreshing requests:", error);
-                    }
-                  }
-                } else {
-                  throw new Error(data.message || "Failed to cancel donation");
-                }
-              } catch (error) {
-                console.error("Error cancelling donation:", error);
-                alert(error.message || "Failed to cancel donation. Please try again.");
-              }
             }
           });
         }
